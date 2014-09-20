@@ -20,15 +20,18 @@ namespace InkAnalyzerTest
 {
     public class CanvasEditor
     {
-        public CanvasEditor() { }
+        Headings headings;
         InkAnalyzer inkAnalyzer;
+        
+        public CanvasEditor() { }
+
         public void analyzeStrokeEvent(InkAnalyzer inkAnalyzer, InkCanvas mainInkCanvas)
         {
             this.inkAnalyzer = inkAnalyzer;
             ContextNodeCollection contextNodeCollection = inkAnalyzer.FindLeafNodes();
-            List<ContextNode> crossNodes = new List<ContextNode>();
+            List<ContextNode> horizontalLines = new List<ContextNode>();
             List<ContextNode> deletedNodes = new List<ContextNode>();
-            //Find gestures
+            //Find single line gestures
             foreach(ContextNode node in contextNodeCollection)
             {
                 if(node.Strokes.Count == 1)
@@ -37,25 +40,90 @@ namespace InkAnalyzerTest
                     //strokeIsCaret(stroke);
                     if(strokeIsHorizontalLine(stroke))
                     {
-                        crossNodes.Add(node);
+                        horizontalLines.Add(node);
                     }
                 }
             }
+            List<HeadingItem> headings = new List<HeadingItem>();
+            //Preprocess lines to check for headings
+            foreach(ContextNode node1 in horizontalLines)
+            {
+                List<HeadingItem> intersectHeadings = new List<HeadingItem>();
+                foreach(HeadingItem heading in headings)
+                {
+                    bool intersectsAny = false;
+                    foreach(ContextNode node2 in heading.lines)
+                    {
+                        Rect first = node1.Strokes.GetBounds();
+                        Rect second = node2.Strokes.GetBounds();
+                        if(Math.Abs(first.Y - second.Y) < 20)
+                        {
+                            intersectsAny = true;
+                            break;
+                        }
+                    }
+                    if(intersectsAny)
+                    {
+                        intersectHeadings.Add(heading);
+                    }
+                }
+
+                HeadingItem resultHeading = new HeadingItem();
+                foreach(HeadingItem heading in intersectHeadings) {
+                    resultHeading.lines.AddRange(heading.lines);
+                    headings.Remove(heading);
+                }
+                resultHeading.lines.Add(node1);
+                headings.Add(resultHeading);
+            }
+
             //Find things to apply gestures to
             foreach(ContextNode node in contextNodeCollection)
             {
-                Rect rect = node.Strokes.GetBounds();
-                rect.Height = rect.Height * 0.75d;
-                for(int j = 0; j < crossNodes.Count; j++)
+                Rect strikethroughBounds = node.Strokes.GetBounds();
+                strikethroughBounds.Height *= 0.75d;
+                for(int j = 0; j < horizontalLines.Count; j++)
                 {
-                    ContextNode crossNode = crossNodes[j];
-                    if(rect.IntersectsWith(crossNode.Strokes.GetBounds()))
+                    ContextNode horizontalLine = horizontalLines[j];
+                    Rect horizontalLineBounds = horizontalLine.Strokes.GetBounds();
+                    if(strikethroughBounds.IntersectsWith(horizontalLineBounds))
                     {
+                        //Delete strikethrough
                         deletedNodes.Add(node);
+                        deletedNodes.Add(horizontalLine);
+                    }
+                }
+
+                Rect underlineBounds = node.Strokes.GetBounds();
+                underlineBounds.Y += underlineBounds.Height * 0.75d;
+                if(node is InkWordNode)
+                {
+                    InkWordNode word = node as InkWordNode;
+
+                    foreach(HeadingItem heading in headings)
+                    {
+                        if(heading.intersects(underlineBounds))
+                        {
+                            heading.text.Add(word);
+                            break;
+                        }
                     }
                 }
             }
-            //Final step to apply the gestures, commit changes and reflow text
+
+            //Remove bad headings
+            List<HeadingItem> actualHeadings = new List<HeadingItem>();
+            foreach(HeadingItem heading in headings) {
+                if(heading.text.Count > 0)
+                {
+                    actualHeadings.Add(heading);
+                }
+            }
+
+            //Here is the end result of the headings
+            headings = actualHeadings;
+
+            //Final step to apply the gestures, commit changes
             foreach(ContextNode node in deletedNodes)
             {
                 mainInkCanvas.Strokes.Remove(node.Strokes);
