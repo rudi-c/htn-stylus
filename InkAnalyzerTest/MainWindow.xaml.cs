@@ -33,6 +33,7 @@ namespace InkAnalyzerTest
         {
             MainInkCanvas.Strokes.StrokesChanged += Strokes_StrokesChanged;
             inkAnalyzer = new InkAnalyzer();
+
             inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
         }
 
@@ -50,6 +51,8 @@ namespace InkAnalyzerTest
         private void AnalyzeButton_Click(object sender, RoutedEventArgs e)
         {
             inkAnalyzer.Analyze();
+
+            AutocorrectNewWordNodes();
 
             // We're completely rebuilding the tree view.
             AnalysisView.Items.Clear();
