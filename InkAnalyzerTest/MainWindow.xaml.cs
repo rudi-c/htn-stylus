@@ -91,6 +91,8 @@ namespace InkAnalyzerTest
 
             AnalysisView.Items.Add(rootTreeItem);
             BuildTree(inkAnalyzer.RootNode, rootTreeItem);
+
+            GenerateBoundingBoxes();
         }
 
         // http://msdn.microsoft.com/en-us/library/system.windows.ink.contextnode(v=vs.90).aspx
@@ -146,12 +148,72 @@ namespace InkAnalyzerTest
 
         private void BoundingBoxCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
-
+            OverlayInkCanvas.Visibility = Visibility.Collapsed;
         }
 
         private void BoundingBoxCheckBox_Checked(object sender, RoutedEventArgs e)
         {
+            OverlayInkCanvas.Visibility = Visibility.Visible;
+            GenerateBoundingBoxes();
+        }
 
+        private void GenerateBoundingBoxes(ContextNode node = null)
+        {
+            if (node == null)
+            {
+                OverlayInkCanvas.Strokes.Clear();
+                node = inkAnalyzer.RootNode;
+            }
+
+            PointCollection boundingBox = null;
+            Color strokeColor = Colors.Black;
+            if (node is InkWordNode)
+            {
+                boundingBox = (node as InkWordNode).GetRotatedBoundingBox();
+                strokeColor = Colors.Azure;
+            }
+            else if (node is LineNode)
+            {
+                boundingBox = (node as LineNode).GetRotatedBoundingBox();
+                strokeColor = Colors.Lime;
+            }
+            else if (node is ParagraphNode)
+            {
+                boundingBox = (node as ParagraphNode).GetRotatedBoundingBox();
+                strokeColor = Colors.Magenta;
+            }
+            else if (node is InkDrawingNode)
+            {
+                boundingBox = (node as InkDrawingNode).GetRotatedBoundingBox();
+                strokeColor = Colors.Gold;
+            }
+
+            if (boundingBox != null)
+            {
+                StrokeCollection collection = new StrokeCollection();
+
+                // Copy of the points for wrapping.
+                boundingBox.Add(boundingBox[0]);
+                for (int i = 0; i < boundingBox.Count - 1; i++)
+                {
+                    StylusPointCollection points = new StylusPointCollection();
+                    StylusPoint point1 = new StylusPoint(boundingBox[i].X, boundingBox[i].Y, 1.0f);
+                    StylusPoint point2 = new StylusPoint(boundingBox[i + 1].X, boundingBox[i + 1].Y, 1.0f);
+                    points.Add(point1);
+                    points.Add(point2);
+
+                    Stroke stroke = new Stroke(points);
+                    stroke.DrawingAttributes.IsHighlighter = true; // for transparency
+                    stroke.DrawingAttributes.Color = strokeColor;
+                    collection.Add(stroke);
+                }
+
+                OverlayInkCanvas.Strokes.Add(collection);
+            }
+
+            // Recurse
+            foreach (ContextNode child in node.SubNodes)
+                GenerateBoundingBoxes(child);
         }
     }
 }

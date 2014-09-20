@@ -45,13 +45,13 @@ namespace InkAnalyzerTest
     public class HeadingItem
     {
         public List<ContextNode> text = new List<ContextNode>();
-        public List<ContextNode> lines = new List<ContextNode>();
+        public List<Stroke> lines = new List<Stroke>();
 
         public bool intersects(Rect bounds)
         {
-            foreach(ContextNode line in lines)
+            foreach (Stroke line in lines)
             {
-                if(line.Strokes.GetBounds().IntersectsWith(bounds))
+                if(line.GetBounds().IntersectsWith(bounds))
                 {
                     return true;
                 }
