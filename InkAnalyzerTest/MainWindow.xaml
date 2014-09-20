@@ -17,7 +17,16 @@
         <InkCanvas Name="MainInkCanvas" Grid.Column="1" Grid.RowSpan="2" />
         <InkCanvas Name="SideInkCanvas" Grid.Column="0" Grid.RowSpan="2"  />
         <TreeView Name="AnalysisView" Grid.Column="2" Grid.Row="0" SelectedItemChanged="AnalysisView_SelectedItemChanged" />
-        <Button Name="AnalyzeButton" Grid.Column="2" Grid.Row="1" Content="Analyze" Click="AnalyzeButton_Click" />
-        <Canvas Name="OverlayCanvas" Grid.Column="0" Grid.Row="0" />
+
+        <StackPanel Grid.Column="2" Grid.Row="1">
+            <Button Name="AnalyzeButton" Content="Analyze" Click="AnalyzeButton_Click" Height="50" />
+            <CheckBox Name="BoundingBoxCheckBox" Content="View Bounding Box" Margin="10" Unchecked="BoundingBoxCheckBox_Unchecked" Checked="BoundingBoxCheckBox_Checked" />
+        </StackPanel>
+
+        <Canvas Name="OverlayCanvas" Grid.Column="1" Grid.Row="0">
+            
+        </Canvas>
+
+        <InkCanvas Name="OverlayInkCanvas" Grid.Column="1" Grid.Row="0" Background="#00000000" Visibility="Collapsed" />
     </Grid>
 </Window>

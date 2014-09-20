@@ -142,5 +142,15 @@ namespace InkAnalyzerTest
             foreach(Stroke stroke in cNode.Strokes)
                 stroke.DrawingAttributes.Color = Colors.Red;
         }
+
+        private void BoundingBoxCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void BoundingBoxCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
