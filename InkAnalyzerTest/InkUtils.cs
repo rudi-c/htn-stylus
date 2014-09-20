@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 using System.Windows;
 using System.Windows.Ink;
 using System.Windows.Input;
@@ -44,6 +44,14 @@ namespace InkAnalyzerTest
         {
             StylusPointCollection r = new StylusPointCollection();
             if (points.Count == 0) return r;
+            double totalLength = 0;
+            for (int i = 1; i < points.Count; ++i)
+            {
+                totalLength += Math.Sqrt(distSquared(points[i - 1], points[i]));
+            }
+            double maxDeviationSquared = Math.Log(totalLength + 150) * 57 - 285;
+                //4.8 * Math.Log(totalLength + 30) - 10; //20 * (Math.Log(distSquared(p1, p2) + 1) + 1);
+            //Debug.WriteLine("{0} => {2}^2 = {1}", totalLength, maxDeviationSquared, Math.Sqrt(maxDeviationSquared));
             r.Add(points[0]);
             for (int i = 0; i+1 < points.Count;)
             {
@@ -52,7 +60,6 @@ namespace InkAnalyzerTest
                 while (j < points.Count)
                 {
                     StylusPoint p2 = points[j];
-                    double maxDeviationSquared = 20 * (Math.Log(distSquared(p1, p2) + 1)+1);
                     for (int k = i + 1; k < j; ++k)
                     {
                         if (lineDistSquared(p1, p2, points[k]) > maxDeviationSquared)
