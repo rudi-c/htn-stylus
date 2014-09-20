@@ -27,6 +27,8 @@ namespace InkAnalyzerTest
         public MainWindow()
         {
             InitializeComponent();
+
+            AutocorrectInit();
         }
 
         private void InkWindow_Loaded(object sender, RoutedEventArgs e)
