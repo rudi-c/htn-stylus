@@ -55,6 +55,10 @@ namespace InkAnalyzerTest
             //Find single line in words
             foreach (ContextNode node in contextNodeCollection)
             {
+                if (node.Strokes.Count == 0)
+                {
+                    continue;
+                }
                 if (node is InkWordNode)
                 {
                     InkWordNode word = node as InkWordNode;
@@ -81,6 +85,10 @@ namespace InkAnalyzerTest
             //Find things to apply gestures to
             foreach (ContextNode node in contextNodeCollection)
             {
+                if (node.Strokes.Count == 0)
+                {
+                    continue;
+                }
                 Rect strikethroughBounds = node.Strokes.GetBounds();
                 strikethroughBounds.Height *= 0.75d;
                 if (node is InkWordNode)
