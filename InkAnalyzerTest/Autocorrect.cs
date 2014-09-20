@@ -54,8 +54,11 @@ namespace InkAnalyzerTest
                         foreach (StylusPoint point in stroke.StylusPoints)
                             minX = Math.Min(minX, point.X);
                     foreach (Stroke stroke in strokes)
-                        foreach (StylusPoint point in stroke.StylusPoints)
-                            point.X = point.X - minX;
+                        for (int i = 0; i < stroke.StylusPoints.Count; i++)
+                            // Struct type can't be used as foreach.
+                            stroke.StylusPoints[i] = new StylusPoint(
+                                stroke.StylusPoints[i].X - minX,
+                                stroke.StylusPoints[i].Y);
 
                     fontData.Add(token.Key, strokes);
                 }
