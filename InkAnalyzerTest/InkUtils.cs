@@ -23,6 +23,106 @@ namespace InkAnalyzerTest
                         stroke.StylusPoints[i].Y * scale);
         }
 
+        public static void Shift(StrokeCollection strokes, double shiftX, double shiftY)
+        {
+            foreach (Stroke stroke in strokes)
+                for (int i = 0; i < stroke.StylusPoints.Count; i++)
+                    // Struct type can't be used as foreach.
+                    stroke.StylusPoints[i] = new StylusPoint(
+                        stroke.StylusPoints[i].X + shiftX,
+                        stroke.StylusPoints[i].Y + shiftY);
+        }
+
+        public static double StrokeXMin(StrokeCollection strokes)
+        {
+            double minX = double.MaxValue;
+            foreach (Stroke stroke in strokes)
+                foreach (StylusPoint point in stroke.StylusPoints)
+                    minX = Math.Min(minX, point.X);
+            return minX;
+        }
+
+        public static double StrokeXRange(StrokeCollection strokes)
+        {
+            double minX = double.MaxValue;
+            double maxX = double.MinValue;
+            foreach (Stroke stroke in strokes)
+            {
+                foreach (StylusPoint point in stroke.StylusPoints)
+                {
+                    minX = Math.Min(minX, point.X);
+                    maxX = Math.Max(maxX, point.X);
+                }
+            }
+            return maxX - minX;
+        }
+
+        public static double StrokeYRange(StrokeCollection strokes)
+        {
+            double minY = double.MaxValue;
+            double maxY = double.MinValue;
+            foreach (Stroke stroke in strokes)
+            {
+                foreach (StylusPoint point in stroke.StylusPoints)
+                {
+                    minY = Math.Min(minY, point.Y);
+                    maxY = Math.Max(maxY, point.Y);
+                }
+            }
+            return maxY - minY;
+        }
+
+        public static void MatchThickness(StrokeCollection reference, StrokeCollection target)
+        {
+            int countRef = 0;
+            double sumRef = 0.0;
+            double ssqRef = 0.0;
+            foreach (Stroke stroke in reference)
+            {
+                foreach (StylusPoint point in stroke.StylusPoints)
+                {
+                    countRef++;
+                    sumRef += point.PressureFactor;
+                    ssqRef += point.PressureFactor * point.PressureFactor;
+                }
+            }
+
+            double avgRef = sumRef / countRef;
+            double sdvRef = Math.Sqrt(ssqRef) / countRef;
+
+            int countTarget = 0;
+            double sumTarget = 0.0;
+            double ssqTarget = 0.0;
+            foreach (Stroke stroke in target)
+            {
+                foreach (StylusPoint point in stroke.StylusPoints)
+                {
+                    countTarget++;
+                    sumTarget += point.PressureFactor;
+                    ssqTarget += point.PressureFactor * point.PressureFactor;
+                }
+            }
+
+            double avgTarget = sumTarget / countTarget;
+            double sdvTarget = Math.Sqrt(ssqTarget) / countTarget;
+
+            // Do bell curve on stylus pressures.
+            foreach (Stroke stroke in target)
+            {
+                for (int i = 0; i < stroke.StylusPoints.Count; i++)
+                {
+                    StylusPoint point = stroke.StylusPoints[i];
+                    float p = point.PressureFactor;
+                    if (p != 0.0f)
+                    {
+                        p = (float)(((p - avgTarget) / sdvTarget) * sdvRef + avgRef);
+                        p = Math.Max(0.05f, Math.Min(1.0f, p));
+                    }
+                    stroke.StylusPoints[i] = new StylusPoint(point.X, point.Y, p);
+                }
+            }
+        }
+
         public static double distSquared(StylusPoint p1, StylusPoint p2)
         {
             double dx = p1.X - p2.X, dy = p1.Y - p2.Y;

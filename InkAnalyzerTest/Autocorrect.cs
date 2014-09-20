@@ -21,7 +21,7 @@ using System.Runtime.Serialization.Json;
 namespace InkAnalyzerTest
 {
     // In our app, we define the "font size" of a letter to be 
-    // the median (or midline) minus the baseline.
+    // the baseline minus the median (or midline).
     // See http://en.wikipedia.org/wiki/Ascender_(typography)
 
     // Class extensions which contains autocorrection logic.
@@ -29,6 +29,7 @@ namespace InkAnalyzerTest
     {
         Hunspell spellchecker = new Hunspell("en_us.aff", "en_us.dic");
         HashSet<InkWordNode> uncheckedNewWordNodes = new HashSet<InkWordNode>();
+        SuggestionsBox suggestionsBox;
 
         Dictionary<char, StylusToken> fontData = new Dictionary<char, StylusToken>();
 
@@ -58,6 +59,15 @@ namespace InkAnalyzerTest
                     fontData.Add(token.Key, stylusToken);
                 }
             }
+
+            // To display autocorrect stuff.
+            suggestionsBox = new SuggestionsBox(this);
+
+            OverlayCanvas.Children.Add(suggestionsBox);
+            Grid.SetRow(suggestionsBox, 0);
+            Grid.SetColumn(suggestionsBox, 0);
+            suggestionsBox.Background = new SolidColorBrush(Colors.LightGray);
+            suggestionsBox.Visibility = Visibility.Collapsed;
         }
 
         void AutocorrectNewWordNodes()
@@ -71,7 +81,8 @@ namespace InkAnalyzerTest
                     List<string> suggestions = spellchecker.Suggest(inkWordNode.GetRecognizedString());
                     if (suggestions.Count > 0)
                     {
-                        SuggestionsBox suggestionsBox = new SuggestionsBox(inkWordNode, suggestions, fontData);
+                        suggestionsBox.SetSuggestions(inkWordNode, suggestions, fontData);
+                        suggestionsBox.Visibility = Visibility.Visible;
 
                         // For now, only autocorrect one word at once.
                         break;

@@ -23,32 +23,63 @@ namespace InkAnalyzerTest
     public partial class SuggestionsBox : UserControl
     {
         private InkWordNode incorrectWord;
+        private MainWindow mainWindow;
 
-        public SuggestionsBox(InkWordNode _incorrectWord, List<string> suggestions,
+        public SuggestionsBox(MainWindow window)
+        {
+            mainWindow = window;
+
+            InitializeComponent();
+        }
+
+        public void SetSuggestions(InkWordNode _incorrectWord, List<String> suggestions,
             Dictionary<char, StylusToken> fontData)
         {
-            InitializeComponent();
+            SuggestionsStack.Children.Clear();
 
             incorrectWord = _incorrectWord;
+
+            int minX = int.MaxValue;
+            int maxX = int.MinValue;
+            int minY = int.MaxValue;
+            int maxY = int.MinValue;
+            foreach (Point point in incorrectWord.GetRotatedBoundingBox())
+            {
+                minX = Math.Min(minX, (int)point.X);
+                maxX = Math.Max(maxX, (int)point.X);
+                minY = Math.Min(minY, (int)point.Y);
+                maxY = Math.Max(maxY, (int)point.Y);
+            }
+            this.Width = 0;
+            this.Height = 0;
 
             var midline = incorrectWord.GetMidline();
             var baseline = incorrectWord.GetBaseline();
 
             // Assume that the midline and baseline are horizontal lines
             // i.e. two points, same y coordinate.
-            double wordSize = midline[0].Y - baseline[0].Y;
+            double wordSize = baseline[0].Y - midline[0].Y;
             
             // Keep the top 3 suggestions for now.
-            for (int i = 0; i < Math.Min(3, suggestions.Count); i++)
+            int displayCount = Math.Min(3, suggestions.Count);
+            for (int i = 0; i < displayCount; i++)
             {
                 StrokeCollection strokeRepresentation = 
                     GetStrokesForString(suggestions[i], fontData);
 
-                // In the font maker, the font size is currently 40.0
-                InkUtils.Scale(strokeRepresentation, wordSize / 40.0);
+                // In the font maker, the font size is currently 30.0
+                InkUtils.Scale(strokeRepresentation, wordSize / 30.0);
+                InkUtils.MatchThickness(incorrectWord.Strokes, strokeRepresentation);
 
                 InkCanvas suggestionCanvas = new InkCanvas();
-                suggestionCanvas.Strokes = strokeRepresentation;
+                suggestionCanvas.Strokes.Add(strokeRepresentation);
+                suggestionCanvas.Height = InkUtils.StrokeYRange(strokeRepresentation) * 1.4;
+                suggestionCanvas.Width = InkUtils.StrokeXRange(strokeRepresentation) + 10;
+                suggestionCanvas.TouchDown += SuggestionCanvas_TouchDown;
+                suggestionCanvas.StylusDown += SuggestionCanvas_StylusDown;
+
+                this.Width = Math.Max(this.Width, suggestionCanvas.Width);
+                this.Height += suggestionCanvas.Height;
 
                 // We shouldn't be writing on this canvas, it's only for
                 // display purposes.
@@ -56,6 +87,47 @@ namespace InkAnalyzerTest
 
                 SuggestionsStack.Children.Add(suggestionCanvas); 
             }
+
+            // Positioning.
+            if (minY < this.Height)
+            {
+                // Show suggestions under incorrect word.
+                Canvas.SetTop(this, maxY);
+            }
+            else
+            {
+                // Show suggestions above incorrect word.
+                Canvas.SetTop(this, minY - this.Height);
+            }
+            Canvas.SetLeft(this, minX);
+        }
+
+        void SuggestionCanvas_StylusDown(object sender, StylusDownEventArgs e)
+        {
+            ChooseSuggestion(sender as InkCanvas);
+        }
+
+        void SuggestionCanvas_TouchDown(object sender, TouchEventArgs e)
+        {
+            ChooseSuggestion(sender as InkCanvas);
+        }
+
+        void ChooseSuggestion(InkCanvas canvas)
+        {
+            // Incase we get a double event.
+            if (this.Visibility == Visibility.Collapsed)
+                return;
+
+            StrokeCollection newStrokes = canvas.Strokes;
+
+            double baseline = incorrectWord.GetBaseline()[0].Y;
+            InkUtils.Shift(newStrokes, InkUtils.StrokeXMin(incorrectWord.Strokes),
+                baseline - 35);
+
+            mainWindow.MainInkCanvas.Strokes.Remove(incorrectWord.Strokes);
+            mainWindow.MainInkCanvas.Strokes.Add(newStrokes);
+
+            this.Visibility = Visibility.Collapsed;
         }
 
         // Generates a collection of strokes representing an entire word.
