@@ -107,16 +107,6 @@ namespace InkAnalyzerTest
             width = maxX - minX;
         }
 
-        public void Scale(double scale)
-        {
-            foreach (Stroke stroke in strokes)
-                for (int i = 0; i < stroke.StylusPoints.Count; i++)
-                    // Struct type can't be used as foreach.
-                    stroke.StylusPoints[i] = new StylusPoint(
-                        stroke.StylusPoints[i].X * scale,
-                        stroke.StylusPoints[i].Y * scale);
-        }
-
         public StylusToken(StrokeCollection _strokes)
         {
             width = 0.0;
