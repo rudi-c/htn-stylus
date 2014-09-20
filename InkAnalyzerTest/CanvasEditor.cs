@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Drawing;
 
 namespace InkAnalyzerTest
 {
@@ -25,6 +26,7 @@ namespace InkAnalyzerTest
         {
             ContextNodeCollection contextNodeCollection = inkAnalyzer.FindLeafNodes();
             List<ContextNode> crossNodes = new List<ContextNode>();
+            List<ContextNode> deletedNodes = new List<ContextNode>();
             for (int i = 0; i < contextNodeCollection.Count; i++)
             {
                 ContextNode node = contextNodeCollection[i];
@@ -47,29 +49,41 @@ namespace InkAnalyzerTest
                     ContextNode crossNode = crossNodes[j];
                     if (crossRect.IntersectsWith(crossNode.Strokes.GetBounds()))
                     {
-                        double widthOffset = node.Strokes.GetBounds().Width;
-                        ContextNodeCollection collection = node.ParentNode.SubNodes;
-                        double beginOffset = node.Strokes.GetBounds().X;
-                        //transposeContextNode(node.ParentNode, -20, 0);
-                        mainInkCanvas.Strokes.Remove(node.Strokes);
-                        //mainInkCanvas.Strokes.Remove(crossNode.Strokes);
-                        //offsetLineAfterNode(beginOffset, collection, -widthOffset);
-                        
+                        deletedNodes.Add(node);
                     }
                 }
+            }
+            for (int i = 0; i < deletedNodes.Count; i++)
+            {
+                ContextNode node = deletedNodes[i];
+                if (node.GetType().Name.Equals("InkWordNode"))
+                {
+                    double closestX = Double.MaxValue;
+                    foreach (ContextNode otherNode in node.ParentNode.SubNodes)
+                    {
+                        double value = otherNode.Strokes.GetBounds().X - node.Strokes.GetBounds().X;
+                        if (value > 0 && value < closestX)
+                        {
+                            closestX = value;
+                        }
+                    }
+
+                    offsetLineAfterNode(node, -closestX);
+                }
+                mainInkCanvas.Strokes.Remove(node.Strokes);
             }
 
             //reflowText(inkAnalyzer, mainInkCanvas, 500);
         }
 
-        private void offsetLineAfterNode(double begin, ContextNodeCollection nodeCollection, double offset)
+        private void offsetLineAfterNode(ContextNode node, double offset)
         {
-            for (int i = 0; i < nodeCollection.Count; i++)
+            for (int i = 0; i < node.ParentNode.SubNodes.Count; i++)
             {
-                ContextNode sameLineNode = nodeCollection[i];
-                if (sameLineNode.Strokes.GetBounds().X > begin)
+                ContextNode sameLineNode = node.ParentNode.SubNodes[i];
+                if (sameLineNode.Strokes.GetBounds().X > node.Strokes.GetBounds().X)
                 {
-                    transposeContextNode(sameLineNode, -80, 0);
+                    transposeContextNode(sameLineNode, offset, 0);
                 }
             }
         }
@@ -95,8 +109,8 @@ namespace InkAnalyzerTest
             foreach (Stroke stroke in node.Strokes)
             {
                 Matrix inkTransform = new Matrix();
-                inkTransform.Translate(offsetX, offsetY);
-                stroke.Transform(inkTransform, true);
+                inkTransform.TranslatePrepend(offsetX, offsetY);
+                stroke.Transform(inkTransform, false);
             }
         }
 
