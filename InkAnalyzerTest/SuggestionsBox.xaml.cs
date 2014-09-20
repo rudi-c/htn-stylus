@@ -73,10 +73,12 @@ namespace InkAnalyzerTest
 
                 InkCanvas suggestionCanvas = new InkCanvas();
                 suggestionCanvas.Strokes.Add(strokeRepresentation);
-                suggestionCanvas.Height = InkUtils.StrokeYRange(strokeRepresentation) * 1.4;
+                suggestionCanvas.Height = InkUtils.StrokeYMax(strokeRepresentation) + 10;
                 suggestionCanvas.Width = InkUtils.StrokeXRange(strokeRepresentation) + 10;
                 suggestionCanvas.TouchDown += SuggestionCanvas_TouchDown;
                 suggestionCanvas.StylusDown += SuggestionCanvas_StylusDown;
+                suggestionCanvas.StylusEnter += SuggestionCanvas_StylusEnter;
+                suggestionCanvas.StylusLeave += SuggestionCanvas_StylusLeave;
 
                 this.Width = Math.Max(this.Width, suggestionCanvas.Width);
                 this.Height += suggestionCanvas.Height;
@@ -100,6 +102,24 @@ namespace InkAnalyzerTest
                 Canvas.SetTop(this, minY - this.Height);
             }
             Canvas.SetLeft(this, minX);
+        }
+
+        void SuggestionCanvas_StylusLeave(object sender, StylusEventArgs e)
+        {
+            InkCanvas canvas = sender as InkCanvas;
+            if (canvas != null)
+            {
+                canvas.Background = new SolidColorBrush(Colors.White);
+            }
+        }
+
+        void SuggestionCanvas_StylusEnter(object sender, StylusEventArgs e)
+        {
+            InkCanvas canvas = sender as InkCanvas;
+            if (canvas != null)
+            {
+                canvas.Background = new SolidColorBrush(Colors.LightBlue);
+            }
         }
 
         void SuggestionCanvas_StylusDown(object sender, StylusDownEventArgs e)

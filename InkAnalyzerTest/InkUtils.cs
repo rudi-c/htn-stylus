@@ -77,6 +77,15 @@ namespace InkAnalyzerTest
             return minX;
         }
 
+        public static double StrokeYMax(StrokeCollection strokes)
+        {
+            double maxY = double.MinValue;
+            foreach (Stroke stroke in strokes)
+                foreach (StylusPoint point in stroke.StylusPoints)
+                    maxY = Math.Max(maxY, point.Y);
+            return maxY;
+        }
+
         public static double StrokeXRange(StrokeCollection strokes)
         {
             double minX = double.MaxValue;

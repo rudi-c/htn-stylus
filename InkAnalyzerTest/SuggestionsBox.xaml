@@ -6,8 +6,9 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
-        <StackPanel Name="SuggestionsStack">
-            
-        </StackPanel>
+        <Border BorderBrush="#FF575757" BorderThickness="3" CornerRadius="2">
+            <StackPanel Name="SuggestionsStack">
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>
