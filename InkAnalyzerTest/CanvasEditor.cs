@@ -33,6 +33,7 @@ namespace InkAnalyzerTest
                 if (node.Strokes.Count == 1)
                 {
                     Stroke stroke = node.Strokes[0];
+                    strokeIsCaret(stroke);
                     if (strokeIsHorizontalLine(stroke))
                     {
                         crossNodes.Add(node);
@@ -109,7 +110,7 @@ namespace InkAnalyzerTest
             foreach (Stroke stroke in node.Strokes)
             {
                 Matrix inkTransform = new Matrix();
-                inkTransform.TranslatePrepend(offsetX, offsetY);
+                inkTransform.Translate(offsetX, offsetY);
                 stroke.Transform(inkTransform, false);
             }
         }
@@ -131,12 +132,65 @@ namespace InkAnalyzerTest
                             sum += Math.Pow(point.Y - expectedY, 2);
                         }
                         double offset = sum / stroke.StylusPoints.Count();
-                        if (offset < 50)
+                        if (offset < 70)
                         {
                             return true;
                         }
                     }
                 }
+            }
+            return false;
+        }
+
+        private bool strokeIsCaret(Stroke stroke)
+        {
+            if (stroke.StylusPoints.Count() > 3)
+            {
+                bool hasGoodFirst = false;
+                bool hasGoodSecond = false;
+                StylusPoint beginningPoint = stroke.StylusPoints.First();
+                StylusPoint middlePoint = stroke.StylusPoints[stroke.StylusPoints.Count / 2];
+                StylusPoint endPoint = stroke.StylusPoints.Last();
+                if (beginningPoint.X < middlePoint.X) {
+                    double firstExpectedSlope = (middlePoint.Y - beginningPoint.Y) / (middlePoint.X - beginningPoint.X);
+                    if (firstExpectedSlope < -0.5 && firstExpectedSlope > -4)
+                    {
+                        double sum = 0;
+                        for (int i=0 ;i<stroke.StylusPoints.Count/2;i++)
+                        {
+                            StylusPoint point = stroke.StylusPoints[i];
+                            double expectedY = beginningPoint.Y + (point.X - beginningPoint.X) * firstExpectedSlope;
+                            sum += Math.Pow(point.Y - expectedY, 2);
+                        }
+                        double offset = sum / stroke.StylusPoints.Count();
+                        Debug.WriteLine(offset);
+                        if (offset < 100)
+                        {
+                            hasGoodFirst = true;
+                        }
+                    }
+                }
+                if (middlePoint.X < endPoint.X) {
+                    double secondExpectedSlope = (endPoint.Y - middlePoint.Y) / (endPoint.X - middlePoint.X);
+                    if (secondExpectedSlope > 0.5 && secondExpectedSlope < 4)
+                    {
+                        double sum = 0;
+                        for (int i=stroke.StylusPoints.Count/2 ;i<stroke.StylusPoints.Count;i++)
+                        {
+                            StylusPoint point = stroke.StylusPoints[i];
+                            double expectedY = middlePoint.Y + (point.X - middlePoint.X) * secondExpectedSlope;
+                            sum += Math.Pow(point.Y - expectedY, 2);
+                        }
+                        double offset = sum / stroke.StylusPoints.Count();
+                        Debug.WriteLine(offset);
+                        if (offset < 100)
+                        {
+                            hasGoodSecond = true;
+                        }
+                    }
+                }
+                Debug.WriteLine(hasGoodFirst && hasGoodSecond);
+                return hasGoodFirst && hasGoodSecond;
             }
             return false;
         }
