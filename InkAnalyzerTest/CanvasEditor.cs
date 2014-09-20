@@ -21,7 +21,8 @@ namespace InkAnalyzerTest
     {
         public CanvasEditor() { }
 
-        public void analyzeStrokeEvent(InkAnalyzer inkAnalyzer, InkCanvas mainInkCanvas) {
+        public void analyzeStrokeEvent(InkAnalyzer inkAnalyzer, InkCanvas mainInkCanvas)
+        {
             ContextNodeCollection contextNodeCollection = inkAnalyzer.FindLeafNodes();
             List<ContextNode> crossNodes = new List<ContextNode>();
             for (int i = 0; i < contextNodeCollection.Count; i++)
@@ -46,9 +47,56 @@ namespace InkAnalyzerTest
                     ContextNode crossNode = crossNodes[j];
                     if (crossRect.IntersectsWith(crossNode.Strokes.GetBounds()))
                     {
+                        double widthOffset = node.Strokes.GetBounds().Width;
+                        ContextNodeCollection collection = node.ParentNode.SubNodes;
+                        double beginOffset = node.Strokes.GetBounds().X;
+                        //transposeContextNode(node.ParentNode, -20, 0);
                         mainInkCanvas.Strokes.Remove(node.Strokes);
+                        //mainInkCanvas.Strokes.Remove(crossNode.Strokes);
+                        //offsetLineAfterNode(beginOffset, collection, -widthOffset);
+                        
                     }
                 }
+            }
+
+            //reflowText(inkAnalyzer, mainInkCanvas, 500);
+        }
+
+        private void offsetLineAfterNode(double begin, ContextNodeCollection nodeCollection, double offset)
+        {
+            for (int i = 0; i < nodeCollection.Count; i++)
+            {
+                ContextNode sameLineNode = nodeCollection[i];
+                if (sameLineNode.Strokes.GetBounds().X > begin)
+                {
+                    transposeContextNode(sameLineNode, -80, 0);
+                }
+            }
+        }
+
+        private void reflowText(InkAnalyzer inkAnalyzer, InkCanvas inkCanvas, double width)
+        {
+            ContextNodeCollection contextNodeCollection = inkAnalyzer.FindLeafNodes();
+            List<InkWordNode> wordNodes = new List<InkWordNode>();
+            double averageHeight = 0;
+            foreach (ContextNode node in contextNodeCollection)
+            {
+                if (node.GetType().Name.Equals("InkWordNode")) {
+                    wordNodes.Add((InkWordNode)node);
+                    averageHeight += node.Strokes.GetBounds().Height;
+                }
+            }
+            averageHeight = averageHeight / wordNodes.Count;
+
+        }
+
+        private void transposeContextNode(ContextNode node, double offsetX, double offsetY)
+        {
+            foreach (Stroke stroke in node.Strokes)
+            {
+                Matrix inkTransform = new Matrix();
+                inkTransform.Translate(offsetX, offsetY);
+                stroke.Transform(inkTransform, true);
             }
         }
 
