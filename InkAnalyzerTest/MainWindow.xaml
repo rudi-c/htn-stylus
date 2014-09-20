@@ -27,6 +27,7 @@
             
         </Canvas>
 
-        <InkCanvas Name="OverlayInkCanvas" Grid.Column="1" Grid.Row="0" Background="#00000000" Visibility="Collapsed" />
+        <InkCanvas Name="OverlayInkCanvas" Grid.Column="1" Grid.Row="0" Background="#00000000" 
+                   Visibility="Collapsed" IsHitTestVisible="False" />
     </Grid>
 </Window>
