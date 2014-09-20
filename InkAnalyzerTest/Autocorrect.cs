@@ -17,6 +17,7 @@ using System.Windows.Shapes;
 using NHunspell;
 using System.IO;
 using System.Runtime.Serialization.Json;
+using System.Text.RegularExpressions;
 
 namespace InkAnalyzerTest
 {
@@ -75,7 +76,8 @@ namespace InkAnalyzerTest
             foreach (InkWordNode inkWordNode in uncheckedNewWordNodes)
             {
                 string recognizedString = inkWordNode.GetRecognizedString();
-                bool correct = spellchecker.Spell(recognizedString);
+                bool correct = !Regex.IsMatch(recognizedString, @"^[a-zA-Z]+$") || spellchecker.Spell(recognizedString);
+
                 if (!correct)
                 {
                     List<string> suggestions = spellchecker.Suggest(inkWordNode.GetRecognizedString());
