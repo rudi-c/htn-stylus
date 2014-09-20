@@ -77,7 +77,7 @@ namespace InkAnalyzerTest
         {
             inkAnalyzer.Analyze();
             canvasEditor.analyzeStrokeEvent(inkAnalyzer, MainInkCanvas, headings);
-            canvasEditor.analyzeStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent);
+            canvasEditor.analyzeStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent, InsertionButton);
             inkAnalyzer.Analyze();
 
             AutocorrectNewWordNodes();
@@ -93,6 +93,13 @@ namespace InkAnalyzerTest
             BuildTree(inkAnalyzer.RootNode, rootTreeItem);
 
             GenerateBoundingBoxes();
+        }
+
+        private void InsertionButton_Click(object sender, RoutedEventArgs e)
+        {
+            InkInsertionCanvasParent.Visibility = Visibility.Hidden;
+            InsertionButton.Visibility = Visibility.Hidden;
+            canvasEditor.removeSavedCaretStroke(MainInkCanvas);
         }
 
         // http://msdn.microsoft.com/en-us/library/system.windows.ink.contextnode(v=vs.90).aspx

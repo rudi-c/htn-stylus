@@ -20,6 +20,8 @@ namespace InkAnalyzerTest
 {
     public class CanvasEditor
     {
+        Stroke strokeToBeReplaced;
+
         public CanvasEditor() { }
 
         public void analyzeStrokeEvent(InkAnalyzer inkAnalyzer, InkCanvas mainInkCanvas, Headings mainHeading)
@@ -293,7 +295,7 @@ namespace InkAnalyzerTest
             return bounds.Height / bounds.Width < 0.1;
         }
 
-        public void analyzeStrokes(InkAnalyzer inkAnalyzer, InkCanvas mainInkCanvas, InkCanvas inkInsertionCanvas, Border InkInsertionCanvasParent)
+        public void analyzeStrokes(InkAnalyzer inkAnalyzer, InkCanvas mainInkCanvas, InkCanvas inkInsertionCanvas, Border InkInsertionCanvasParent, Button insertionButton)
         {
             ContextNodeCollection nodeCollection = inkAnalyzer.FindLeafNodes();
             for (int i = 0; i < nodeCollection.Count; i++)
@@ -305,10 +307,21 @@ namespace InkAnalyzerTest
                     if (strokeIsCaret(stroke))
                     {
                         InkInsertionCanvasParent.Visibility = Visibility.Visible;
+                        insertionButton.Visibility = Visibility.Visible;
                         Canvas.SetLeft(InkInsertionCanvasParent, stroke.StylusPoints[0].X - 140);
                         Canvas.SetTop(InkInsertionCanvasParent, stroke.StylusPoints[1].Y);
+                        Canvas.SetLeft(insertionButton, stroke.StylusPoints[0].X + 20);
+                        Canvas.SetTop(insertionButton, stroke.StylusPoints[1].Y + 120);
+                        strokeToBeReplaced = stroke;
                     }
                 }
+            }
+        }
+
+        public void removeSavedCaretStroke(InkCanvas mainInkCanvas) {
+            if (strokeToBeReplaced != null)
+            {
+                mainInkCanvas.Strokes.Remove(strokeToBeReplaced);
             }
         }
 
@@ -321,6 +334,8 @@ namespace InkAnalyzerTest
                 StylusPoint beginningPoint = stroke.StylusPoints.First();
                 StylusPoint middlePoint = stroke.StylusPoints[stroke.StylusPoints.Count / 2];
                 StylusPoint endPoint = stroke.StylusPoints.Last();
+                double firstOffset = 0;
+                double secondOffset = 0;
                 if (beginningPoint.X < middlePoint.X)
                 {
                     double firstExpectedSlope = (middlePoint.Y - beginningPoint.Y) / (middlePoint.X - beginningPoint.X);
@@ -333,9 +348,8 @@ namespace InkAnalyzerTest
                             double expectedY = beginningPoint.Y + (point.X - beginningPoint.X) * firstExpectedSlope;
                             sum += Math.Pow(point.Y - expectedY, 2);
                         }
-                        double offset = sum / stroke.StylusPoints.Count();
-                        Debug.WriteLine(offset);
-                        if(offset < 120)
+                        firstOffset = sum / stroke.StylusPoints.Count();
+                        if (firstOffset < 120)
                         {
                             hasGoodFirst = true;
                         }
@@ -353,16 +367,18 @@ namespace InkAnalyzerTest
                             double expectedY = middlePoint.Y + (point.X - middlePoint.X) * secondExpectedSlope;
                             sum += Math.Pow(point.Y - expectedY, 2);
                         }
-                        double offset = sum / stroke.StylusPoints.Count();
-                        Debug.WriteLine(offset);
+                        secondOffset = sum / stroke.StylusPoints.Count();
 
-                        if(offset < 120)
+                        if (secondOffset < 120)
                         {
                             hasGoodSecond = true;
                         }
                     }
                 }
-                Debug.WriteLine(hasGoodFirst && hasGoodSecond);
+                if (hasGoodFirst && hasGoodSecond)
+                {
+                    Debug.WriteLine(firstOffset + " " + secondOffset);
+                }
                 return hasGoodFirst && hasGoodSecond;
             }
             return false;

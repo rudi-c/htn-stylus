@@ -27,6 +27,7 @@
             <Border Name="InkInsertionCanvasParent"  BorderBrush="Black" BorderThickness="1" Visibility="Hidden">
                 <InkCanvas Name="InkInsertionCanvas" Width="300" Height="100"/>
             </Border>
+            <Button Name="InsertionButton" Width="80" Height="30" Click="InsertionButton_Click" Visibility="Hidden">Insert</Button>
         </Canvas>
 
         <InkCanvas Name="OverlayInkCanvas" Grid.Column="1" Grid.Row="0" Background="#00000000" 
