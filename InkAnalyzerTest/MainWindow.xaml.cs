@@ -23,6 +23,7 @@ namespace InkAnalyzerTest
     {
         InkAnalyzer inkAnalyzer = new InkAnalyzer();
         CanvasEditor canvasEditor = new CanvasEditor();
+        Headings headings = new Headings();
 
         public MainWindow()
         {
@@ -35,17 +36,39 @@ namespace InkAnalyzerTest
         {
             MainInkCanvas.Strokes.StrokesChanged += Strokes_StrokesChanged;
             inkAnalyzer = new InkAnalyzer();
+            headings.sidebar = SideInkCanvas;
 
             inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
+            SideBarTrigger.MouseUp += SideBarTrigger_MouseUp;
+            SideBarTrigger.StylusButtonUp += SideBarTrigger_StylusButtonUp;
+        }
+
+        private void SideBarTrigger_StylusButtonUp(object sender, StylusButtonEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        void SideBarTrigger_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if(SideInkCanvas.Visibility == Visibility.Visible)
+            {
+                SideInkCanvas.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                SideInkCanvas.Visibility = Visibility.Visible;
+            }
         }
 
         void Strokes_StrokesChanged(object sender, StrokeCollectionChangedEventArgs e)
         {
-            foreach (Stroke stroke in e.Added) {
+            foreach(Stroke stroke in e.Added)
+            {
                 inkAnalyzer.AddStroke(stroke);
             }
 
-            foreach (Stroke stroke in e.Removed) {
+            foreach(Stroke stroke in e.Removed)
+            {
                 inkAnalyzer.RemoveStroke(stroke);
             }
         }
@@ -53,7 +76,7 @@ namespace InkAnalyzerTest
         private void AnalyzeButton_Click(object sender, RoutedEventArgs e)
         {
             inkAnalyzer.Analyze();
-            canvasEditor.analyzeStrokeEvent(inkAnalyzer, MainInkCanvas);
+            canvasEditor.analyzeStrokeEvent(inkAnalyzer, MainInkCanvas, headings);
             inkAnalyzer.Analyze();
 
             AutocorrectNewWordNodes();
@@ -74,23 +97,23 @@ namespace InkAnalyzerTest
         {
             parentTNode.IsExpanded = true;
 
-            foreach (ContextNode cNode in parentCNode.SubNodes)
+            foreach(ContextNode cNode in parentCNode.SubNodes)
             {
                 // Create new tree node corresponding to context node.
                 TreeViewItem tNode = new TreeViewItem();
                 tNode.Tag = cNode;
                 tNode.Header = cNode.ToString();
 
-                if (cNode is InkWordNode)
+                if(cNode is InkWordNode)
                 {
                     tNode.Header += ": " + (cNode as InkWordNode).GetRecognizedString();
                 }
-                else if (cNode is InkDrawingNode)
+                else if(cNode is InkDrawingNode)
                 {
                     tNode.Header += ": " + (cNode as InkDrawingNode).GetShapeName();
                 }
 
-                if (cNode.IsConfirmed(ConfirmationType.NodeTypeAndProperties))
+                if(cNode.IsConfirmed(ConfirmationType.NodeTypeAndProperties))
                 {
                     tNode.Header += "Confirmed.";
                 }
@@ -103,20 +126,20 @@ namespace InkAnalyzerTest
         private void AnalysisView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             TreeViewItem selectedItem = e.NewValue as TreeViewItem;
-            if (selectedItem == null)
+            if(selectedItem == null)
                 return;
 
-            ContextNode cNode = (ContextNode)selectedItem.Tag;
+            ContextNode cNode = (ContextNode) selectedItem.Tag;
 
             MarkNodeAsRed(cNode);
         }
 
         private void MarkNodeAsRed(ContextNode cNode)
         {
-            foreach (Stroke stroke in MainInkCanvas.Strokes)
+            foreach(Stroke stroke in MainInkCanvas.Strokes)
                 stroke.DrawingAttributes.Color = Colors.Black;
 
-            foreach (Stroke stroke in cNode.Strokes)
+            foreach(Stroke stroke in cNode.Strokes)
                 stroke.DrawingAttributes.Color = Colors.Red;
         }
     }

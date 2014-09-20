@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Ink;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace InkAnalyzerTest
 {
@@ -75,6 +76,23 @@ namespace InkAnalyzerTest
                 i = j;
             }
             return r;
+        }
+
+        public static void transposeStrokes(InkAnalyzer inkAnalyzer, StrokeCollection strokes, double offsetX, double offsetY)
+        {
+            if(inkAnalyzer != null)
+            {
+                inkAnalyzer.RemoveStrokes(strokes);
+            }
+
+            Matrix transform = new Matrix();
+            transform.Translate(offsetX, offsetY);
+            strokes.Transform(transform, false);
+
+            if(inkAnalyzer != null)
+            {
+                inkAnalyzer.AddStrokes(strokes);
+            }
         }
     }
 }

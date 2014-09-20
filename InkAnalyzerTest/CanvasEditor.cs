@@ -20,12 +20,11 @@ namespace InkAnalyzerTest
 {
     public class CanvasEditor
     {
-        Headings headings;
         InkAnalyzer inkAnalyzer;
-        
+
         public CanvasEditor() { }
 
-        public void analyzeStrokeEvent(InkAnalyzer inkAnalyzer, InkCanvas mainInkCanvas)
+        public void analyzeStrokeEvent(InkAnalyzer inkAnalyzer, InkCanvas mainInkCanvas, Headings mainHeading)
         {
             this.inkAnalyzer = inkAnalyzer;
             ContextNodeCollection contextNodeCollection = inkAnalyzer.FindLeafNodes();
@@ -69,7 +68,8 @@ namespace InkAnalyzerTest
                 }
 
                 HeadingItem resultHeading = new HeadingItem();
-                foreach(HeadingItem heading in intersectHeadings) {
+                foreach(HeadingItem heading in intersectHeadings)
+                {
                     resultHeading.lines.AddRange(heading.lines);
                     headings.Remove(heading);
                 }
@@ -84,6 +84,10 @@ namespace InkAnalyzerTest
                 strikethroughBounds.Height *= 0.75d;
                 for(int j = 0; j < horizontalLines.Count; j++)
                 {
+                    if(node == horizontalLines[j])
+                    {
+                        break;
+                    }
                     ContextNode horizontalLine = horizontalLines[j];
                     Rect horizontalLineBounds = horizontalLine.Strokes.GetBounds();
                     if(strikethroughBounds.IntersectsWith(horizontalLineBounds))
@@ -113,7 +117,8 @@ namespace InkAnalyzerTest
 
             //Remove bad headings
             List<HeadingItem> actualHeadings = new List<HeadingItem>();
-            foreach(HeadingItem heading in headings) {
+            foreach(HeadingItem heading in headings)
+            {
                 if(heading.text.Count > 0)
                 {
                     actualHeadings.Add(heading);
@@ -121,7 +126,8 @@ namespace InkAnalyzerTest
             }
 
             //Here is the end result of the headings
-            headings = actualHeadings;
+            mainHeading.headings = actualHeadings;
+            mainHeading.invalidate();
 
             //Final step to apply the gestures, commit changes
             foreach(ContextNode node in deletedNodes)
@@ -227,21 +233,12 @@ namespace InkAnalyzerTest
                     double dx = destX - (wordBound.X);
                     //Match mid
                     double dy = (y + lineMidline + bounds.Y) - (wordBound.Y + midlineFromTop);
-                    transposeStrokes(word.Strokes, dx, dy);
+                    InkUtils.transposeStrokes(inkAnalyzer, word.Strokes, dx, dy);
                     x += spacing + wordBound.Width;
                 }
                 y += lineHeight + spacing;
                 lineNumber++;
             }
-        }
-
-        private void transposeStrokes(StrokeCollection strokes, double offsetX, double offsetY)
-        {
-            inkAnalyzer.RemoveStrokes(strokes);
-            Matrix inkTransform = new Matrix();
-            inkTransform.Translate(offsetX, offsetY);
-            strokes.Transform(inkTransform, false);
-            inkAnalyzer.AddStrokes(strokes);
         }
 
         private void transposeContextNode(ContextNode node, double offsetX, double offsetY)
