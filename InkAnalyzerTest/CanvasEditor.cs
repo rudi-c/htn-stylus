@@ -36,7 +36,6 @@ namespace InkAnalyzerTest
                 if(node.Strokes.Count == 1)
                 {
                     Stroke stroke = node.Strokes[0];
-                    //strokeIsCaret(stroke);
                     if(strokeIsHorizontalLine(stroke))
                     {
                         horizontalLines.Add(node);
@@ -257,6 +256,25 @@ namespace InkAnalyzerTest
             return bounds.Height / bounds.Width < 0.1;
         }
 
+        public void analyzeStrokes(InkAnalyzer inkAnalyzer, InkCanvas mainInkCanvas, InkCanvas inkInsertionCanvas, Border InkInsertionCanvasParent)
+        {
+            ContextNodeCollection nodeCollection = inkAnalyzer.FindLeafNodes();
+            for (int i = 0; i < nodeCollection.Count; i++)
+            {
+                ContextNode childNodes = nodeCollection[i];
+                for (int j = 0; j < childNodes.Strokes.Count; j++)
+                {
+                    Stroke stroke = childNodes.Strokes[j];
+                    if (strokeIsCaret(stroke))
+                    {
+                        InkInsertionCanvasParent.Visibility = Visibility.Visible;
+                        Canvas.SetLeft(InkInsertionCanvasParent, stroke.StylusPoints[0].X - 140);
+                        Canvas.SetTop(InkInsertionCanvasParent, stroke.StylusPoints[1].Y);
+                    }
+                }
+            }
+        }
+
         private bool strokeIsCaret(Stroke stroke)
         {
             if(stroke.StylusPoints.Count() > 3)
@@ -280,7 +298,7 @@ namespace InkAnalyzerTest
                         }
                         double offset = sum / stroke.StylusPoints.Count();
                         Debug.WriteLine(offset);
-                        if(offset < 100)
+                        if(offset < 120)
                         {
                             hasGoodFirst = true;
                         }
@@ -300,7 +318,7 @@ namespace InkAnalyzerTest
                         }
                         double offset = sum / stroke.StylusPoints.Count();
                         Debug.WriteLine(offset);
-                        if(offset < 100)
+                        if(offset < 120)
                         {
                             hasGoodSecond = true;
                         }

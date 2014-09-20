@@ -77,6 +77,7 @@ namespace InkAnalyzerTest
         {
             inkAnalyzer.Analyze();
             canvasEditor.analyzeStrokeEvent(inkAnalyzer, MainInkCanvas, headings);
+            canvasEditor.analyzeStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent);
             inkAnalyzer.Analyze();
 
             AutocorrectNewWordNodes();
