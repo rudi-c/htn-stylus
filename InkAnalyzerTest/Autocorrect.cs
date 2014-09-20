@@ -34,6 +34,8 @@ namespace InkAnalyzerTest
 
         Dictionary<char, StylusToken> fontData = new Dictionary<char, StylusToken>();
 
+        int strokesAddedSinceSuggestionsShown = 0;
+
         void InkAnalyzer_ContextNodeCreated(object sender, ContextNodeCreatedEventArgs e)
         {
             // The GetRecognizedString returns null when the ContextNodeCreated event
@@ -85,6 +87,7 @@ namespace InkAnalyzerTest
                     {
                         suggestionsBox.SetSuggestions(inkWordNode, suggestions, fontData);
                         suggestionsBox.Visibility = Visibility.Visible;
+                        strokesAddedSinceSuggestionsShown = 0;
 
                         // For now, only autocorrect one word at once.
                         break;
@@ -93,6 +96,15 @@ namespace InkAnalyzerTest
             }
 
             uncheckedNewWordNodes.Clear();
+        }
+
+        void AutocorrectHandleAddStroke(Stroke stroke)
+        {
+            strokesAddedSinceSuggestionsShown++;
+
+            // Don't leave the suggestions box open for too long.
+            if (strokesAddedSinceSuggestionsShown > 7)
+                suggestionsBox.Visibility = Visibility.Collapsed;
         }
     }
 }

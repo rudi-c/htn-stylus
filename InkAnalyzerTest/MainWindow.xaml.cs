@@ -69,10 +69,17 @@ namespace InkAnalyzerTest
                 {
                     inkAnalyzer.AddStroke(stroke);
                 }
+
+                AutocorrectHandleAddStroke(stroke);
             }
 
             foreach(Stroke stroke in e.Removed)
             {
+                // If we erase a word and try to replace it with autocorrect
+                // suggestions, there's no good way to define the behavior
+                // so just hide the suggestions.
+                suggestionsBox.Visibility = Visibility.Collapsed;
+
                 inkAnalyzer.RemoveStroke(stroke);
             }
         }
