@@ -33,6 +33,7 @@ namespace InkAnalyzerTest
         {
             MainInkCanvas.Strokes.StrokesChanged += Strokes_StrokesChanged;
             inkAnalyzer = new InkAnalyzer();
+            inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
         }
 
         void Strokes_StrokesChanged(object sender, StrokeCollectionChangedEventArgs e)
