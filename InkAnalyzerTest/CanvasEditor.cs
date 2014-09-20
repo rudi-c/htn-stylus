@@ -20,55 +20,135 @@ namespace InkAnalyzerTest
 {
     public class CanvasEditor
     {
-        InkAnalyzer inkAnalyzer;
-
         public CanvasEditor() { }
 
         public void analyzeStrokeEvent(InkAnalyzer inkAnalyzer, InkCanvas mainInkCanvas, Headings mainHeading)
         {
-            this.inkAnalyzer = inkAnalyzer;
             ContextNodeCollection contextNodeCollection = inkAnalyzer.FindLeafNodes();
-            List<ContextNode> horizontalLines = new List<ContextNode>();
-            List<ContextNode> deletedNodes = new List<ContextNode>();
+            List<Stroke> horizontalLines = findLines(contextNodeCollection);
+
+            findAndDeleteStrikethrough(inkAnalyzer, mainInkCanvas, horizontalLines, contextNodeCollection);
+
+            List<HeadingItem> headings = findHeadings(horizontalLines, contextNodeCollection);
+
+            //Here is the end result of the headings
+            mainHeading.headings = headings;
+            //Invalidate and render the headings to the side panel
+            mainHeading.invalidate();
+
+            //Reflow all lines
+            reflowText(inkAnalyzer, mainInkCanvas, 25);
+        }
+
+        private List<Stroke> findLines(ContextNodeCollection contextNodeCollection)
+        {
+            List<Stroke> horizontalLines = new List<Stroke>();
+
             //Find single line gestures
-            foreach(ContextNode node in contextNodeCollection)
+            foreach (ContextNode node in contextNodeCollection)
             {
-                if(node.Strokes.Count == 1)
+                if (node.Strokes.Count == 1)
                 {
                     Stroke stroke = node.Strokes[0];
-                    //strokeIsCaret(stroke);
-                    if(strokeIsHorizontalLine(stroke))
+                    if (strokeIsHorizontalLine(stroke))
                     {
-                        horizontalLines.Add(node);
+                        horizontalLines.Add(stroke);
                     }
                 }
             }
+
+            //Find single line in words
+            foreach (ContextNode node in contextNodeCollection)
+            {
+                if (node is InkWordNode)
+                {
+                    InkWordNode word = node as InkWordNode;
+                    Rect bounds = word.Strokes.GetBounds();
+                    foreach (Stroke stroke in word.Strokes)
+                    {
+                        if (strokeIsHorizontalLine(stroke))
+                        {
+                            if (stroke.GetBounds().Width == bounds.Width)
+                            {
+                                horizontalLines.Add(stroke);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return horizontalLines;
+        }
+
+        private void findAndDeleteStrikethrough(InkAnalyzer inkAnalyzer, InkCanvas mainInkCanvas,
+            List<Stroke> horizontalLines, ContextNodeCollection contextNodeCollection)
+        {
+            List<StrokeCollection> deletedStrokes = new List<StrokeCollection>();
+
+            //Find things to apply gestures to
+            foreach (ContextNode node in contextNodeCollection)
+            {
+                Rect strikethroughBounds = node.Strokes.GetBounds();
+                strikethroughBounds.Height *= 0.75d;
+                for (int j = 0; j < horizontalLines.Count; j++)
+                {
+                    if (node.Strokes[0] == horizontalLines[j])
+                    {
+                        break;
+                    }
+                    Stroke horizontalLine = horizontalLines[j];
+                    Rect horizontalLineBounds = horizontalLine.GetBounds();
+                    if (strikethroughBounds.IntersectsWith(horizontalLineBounds))
+                    {
+                        //Delete strikethrough
+                        deletedStrokes.Add(node.Strokes);
+                        StrokeCollection singleStroke = new StrokeCollection();
+                        singleStroke.Add(horizontalLine);
+                        deletedStrokes.Add(singleStroke);
+
+                        horizontalLines.RemoveAt(j);
+                        j--;
+                    }
+                }
+            }
+
+            //Final step to apply the gestures, commit changes
+            foreach (StrokeCollection stroke in deletedStrokes)
+            {
+                mainInkCanvas.Strokes.Remove(stroke);
+                inkAnalyzer.RemoveStrokes(stroke);
+            }
+        }
+
+        //Create headings from lines
+        private List<HeadingItem> findHeadings(List<Stroke> horizontalLines, ContextNodeCollection contextNodeCollection)
+        {
+            //Group lines together into "Heading Groups"
             List<HeadingItem> headings = new List<HeadingItem>();
-            //Preprocess lines to check for headings
-            foreach(ContextNode node1 in horizontalLines)
+            foreach (Stroke node1 in horizontalLines)
             {
                 List<HeadingItem> intersectHeadings = new List<HeadingItem>();
-                foreach(HeadingItem heading in headings)
+                foreach (HeadingItem heading in headings)
                 {
                     bool intersectsAny = false;
-                    foreach(ContextNode node2 in heading.lines)
+                    foreach (Stroke node2 in heading.lines)
                     {
-                        Rect first = node1.Strokes.GetBounds();
-                        Rect second = node2.Strokes.GetBounds();
-                        if(Math.Abs(first.Y - second.Y) < 20)
+                        Rect first = node1.GetBounds();
+                        Rect second = node2.GetBounds();
+                        if (Math.Abs(first.Y - second.Y) < 20 && Math.Abs(first.X - second.X) < 20)
                         {
                             intersectsAny = true;
                             break;
                         }
                     }
-                    if(intersectsAny)
+                    if (intersectsAny)
                     {
                         intersectHeadings.Add(heading);
                     }
                 }
 
                 HeadingItem resultHeading = new HeadingItem();
-                foreach(HeadingItem heading in intersectHeadings)
+                foreach (HeadingItem heading in intersectHeadings)
                 {
                     resultHeading.lines.AddRange(heading.lines);
                     headings.Remove(heading);
@@ -77,36 +157,22 @@ namespace InkAnalyzerTest
                 headings.Add(resultHeading);
             }
 
-            //Find things to apply gestures to
-            foreach(ContextNode node in contextNodeCollection)
+            //Find words that associate to Heading Groups
+            foreach (ContextNode node in contextNodeCollection)
             {
-                Rect strikethroughBounds = node.Strokes.GetBounds();
-                strikethroughBounds.Height *= 0.75d;
-                for(int j = 0; j < horizontalLines.Count; j++)
+                if (node.Strokes.Count == 0)
                 {
-                    if(node == horizontalLines[j])
-                    {
-                        break;
-                    }
-                    ContextNode horizontalLine = horizontalLines[j];
-                    Rect horizontalLineBounds = horizontalLine.Strokes.GetBounds();
-                    if(strikethroughBounds.IntersectsWith(horizontalLineBounds))
-                    {
-                        //Delete strikethrough
-                        deletedNodes.Add(node);
-                        deletedNodes.Add(horizontalLine);
-                    }
+                    continue;
                 }
-
                 Rect underlineBounds = node.Strokes.GetBounds();
                 underlineBounds.Y += underlineBounds.Height * 0.75d;
-                if(node is InkWordNode)
+                if (node is InkWordNode)
                 {
                     InkWordNode word = node as InkWordNode;
 
-                    foreach(HeadingItem heading in headings)
+                    foreach (HeadingItem heading in headings)
                     {
-                        if(heading.intersects(underlineBounds))
+                        if (heading.intersects(underlineBounds))
                         {
                             heading.text.Add(word);
                             break;
@@ -117,72 +183,47 @@ namespace InkAnalyzerTest
 
             //Remove bad headings
             List<HeadingItem> actualHeadings = new List<HeadingItem>();
-            foreach(HeadingItem heading in headings)
+            foreach (HeadingItem heading in headings)
             {
-                if(heading.text.Count > 0)
+                if (heading.text.Count > 0)
                 {
                     actualHeadings.Add(heading);
                 }
             }
 
-            //Here is the end result of the headings
-            mainHeading.headings = actualHeadings;
-            mainHeading.invalidate();
-
-            //Final step to apply the gestures, commit changes
-            foreach(ContextNode node in deletedNodes)
-            {
-                mainInkCanvas.Strokes.Remove(node.Strokes);
-                inkAnalyzer.RemoveStrokes(node.Strokes);
-            }
-
-            //Reflow all lines
-            reflowText(inkAnalyzer, mainInkCanvas, 25);
-        }
-
-        private void offsetLineAfterNode(ContextNode node, double offset)
-        {
-            ContextNodeCollection line = node.ParentNode.SubNodes;
-            for(int i = 0; i < line.Count; i++)
-            {
-                ContextNode sameLineNode = line[i];
-                if(sameLineNode.Strokes.GetBounds().X > node.Strokes.GetBounds().X)
-                {
-                    transposeContextNode(sameLineNode, offset, 0);
-                }
-            }
+            return actualHeadings;
         }
 
         private void reflowText(InkAnalyzer inkAnalyzer, InkCanvas inkCanvas, double width)
         {
             ContextNodeCollection parentList = inkAnalyzer.RootNode.SubNodes;
-            foreach(ContextNode node in parentList)
+            foreach (ContextNode node in parentList)
             {
-                if(node is WritingRegionNode)
+                if (node is WritingRegionNode)
                 {
                     ContextNodeCollection paragraphs = node.SubNodes;
-                    foreach(ContextNode paragraph in paragraphs)
+                    foreach (ContextNode paragraph in paragraphs)
                     {
-                        if(paragraph is ParagraphNode)
+                        if (paragraph is ParagraphNode)
                         {
-                            reflowParagraph(paragraph as ParagraphNode, inkCanvas, width);
+                            reflowParagraph(paragraph as ParagraphNode, inkAnalyzer, inkCanvas, width);
                         }
                     }
                 }
             }
         }
 
-        private void reflowParagraph(ParagraphNode node, InkCanvas inkCanvas, double spacing)
+        private void reflowParagraph(ParagraphNode node, InkAnalyzer inkAnalyzer, InkCanvas inkCanvas, double spacing)
         {
             ContextNodeCollection lines = node.SubNodes;
             Rect bounds = node.Strokes.GetBounds();
             List<InkWordNode> resultWords = new List<InkWordNode>();
             double lineHeight = 0;
             //Collect all strokes
-            foreach(ContextNode line in lines)
+            foreach (ContextNode line in lines)
             {
                 ContextNodeCollection words = line.SubNodes;
-                foreach(ContextNode word in words)
+                foreach (ContextNode word in words)
                 {
                     lineHeight += word.Strokes.GetBounds().Height;
                     InkWordNode wordNode = word as InkWordNode;
@@ -198,11 +239,11 @@ namespace InkAnalyzerTest
             double maxX = inkCanvas.ActualWidth - bounds.X;
             resultLines.Add(new List<InkWordNode>());
             lineMaxMidline.Add(0);
-            foreach(InkWordNode word in resultWords)
+            foreach (InkWordNode word in resultWords)
             {
                 //Does word fit?
                 Rect wordBound = word.Strokes.GetBounds();
-                if(x + wordBound.Width + spacing > maxX)
+                if (x + wordBound.Width + spacing > maxX)
                 {
                     //Not fitting! Newline
                     x = 0;
@@ -212,7 +253,7 @@ namespace InkAnalyzerTest
                 PointCollection mid = word.GetMidline();
                 double midlineFromTop = mid[0].Y - wordBound.Y;
                 resultLines[resultLines.Count - 1].Add(word);
-                if(midlineFromTop > lineMaxMidline[resultLines.Count - 1])
+                if (midlineFromTop > lineMaxMidline[resultLines.Count - 1])
                 {
                     lineMaxMidline[resultLines.Count - 1] = midlineFromTop;
                 }
@@ -220,11 +261,11 @@ namespace InkAnalyzerTest
 
             double y = 0;
             int lineNumber = 0;
-            foreach(List<InkWordNode> line in resultLines)
+            foreach (List<InkWordNode> line in resultLines)
             {
                 double lineMidline = lineMaxMidline[lineNumber];
                 x = 0;
-                foreach(InkWordNode word in line)
+                foreach (InkWordNode word in line)
                 {
                     Rect wordBound = word.Strokes.GetBounds();
                     PointCollection mid = word.GetMidline();
@@ -243,7 +284,7 @@ namespace InkAnalyzerTest
 
         private void transposeContextNode(ContextNode node, double offsetX, double offsetY)
         {
-            foreach(Stroke stroke in node.Strokes)
+            foreach (Stroke stroke in node.Strokes)
             {
                 Matrix inkTransform = new Matrix();
                 inkTransform.Translate(offsetX, offsetY);
@@ -259,20 +300,20 @@ namespace InkAnalyzerTest
 
         private bool strokeIsCaret(Stroke stroke)
         {
-            if(stroke.StylusPoints.Count() > 3)
+            if (stroke.StylusPoints.Count() > 3)
             {
                 bool hasGoodFirst = false;
                 bool hasGoodSecond = false;
                 StylusPoint beginningPoint = stroke.StylusPoints.First();
                 StylusPoint middlePoint = stroke.StylusPoints[stroke.StylusPoints.Count / 2];
                 StylusPoint endPoint = stroke.StylusPoints.Last();
-                if(beginningPoint.X < middlePoint.X)
+                if (beginningPoint.X < middlePoint.X)
                 {
                     double firstExpectedSlope = (middlePoint.Y - beginningPoint.Y) / (middlePoint.X - beginningPoint.X);
-                    if(firstExpectedSlope < -0.5 && firstExpectedSlope > -4)
+                    if (firstExpectedSlope < -0.5 && firstExpectedSlope > -4)
                     {
                         double sum = 0;
-                        for(int i = 0; i < stroke.StylusPoints.Count / 2; i++)
+                        for (int i = 0; i < stroke.StylusPoints.Count / 2; i++)
                         {
                             StylusPoint point = stroke.StylusPoints[i];
                             double expectedY = beginningPoint.Y + (point.X - beginningPoint.X) * firstExpectedSlope;
@@ -280,19 +321,19 @@ namespace InkAnalyzerTest
                         }
                         double offset = sum / stroke.StylusPoints.Count();
                         Debug.WriteLine(offset);
-                        if(offset < 100)
+                        if (offset < 100)
                         {
                             hasGoodFirst = true;
                         }
                     }
                 }
-                if(middlePoint.X < endPoint.X)
+                if (middlePoint.X < endPoint.X)
                 {
                     double secondExpectedSlope = (endPoint.Y - middlePoint.Y) / (endPoint.X - middlePoint.X);
-                    if(secondExpectedSlope > 0.5 && secondExpectedSlope < 4)
+                    if (secondExpectedSlope > 0.5 && secondExpectedSlope < 4)
                     {
                         double sum = 0;
-                        for(int i = stroke.StylusPoints.Count / 2; i < stroke.StylusPoints.Count; i++)
+                        for (int i = stroke.StylusPoints.Count / 2; i < stroke.StylusPoints.Count; i++)
                         {
                             StylusPoint point = stroke.StylusPoints[i];
                             double expectedY = middlePoint.Y + (point.X - middlePoint.X) * secondExpectedSlope;
@@ -300,7 +341,7 @@ namespace InkAnalyzerTest
                         }
                         double offset = sum / stroke.StylusPoints.Count();
                         Debug.WriteLine(offset);
-                        if(offset < 100)
+                        if (offset < 100)
                         {
                             hasGoodSecond = true;
                         }
