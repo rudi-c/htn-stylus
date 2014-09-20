@@ -55,7 +55,8 @@ namespace InkAnalyzerTest
                     // Struct type can't be used as foreach.
                     stroke.StylusPoints[i] = new StylusPoint(
                         stroke.StylusPoints[i].X * scale,
-                        stroke.StylusPoints[i].Y * scale);
+                        stroke.StylusPoints[i].Y * scale,
+                        stroke.StylusPoints[i].PressureFactor);
         }
 
         public static void Shift(StrokeCollection strokes, double shiftX, double shiftY)
@@ -65,7 +66,8 @@ namespace InkAnalyzerTest
                     // Struct type can't be used as foreach.
                     stroke.StylusPoints[i] = new StylusPoint(
                         stroke.StylusPoints[i].X + shiftX,
-                        stroke.StylusPoints[i].Y + shiftY);
+                        stroke.StylusPoints[i].Y + shiftY,
+                        stroke.StylusPoints[i].PressureFactor);
         }
 
         public static double StrokeXMin(StrokeCollection strokes)
