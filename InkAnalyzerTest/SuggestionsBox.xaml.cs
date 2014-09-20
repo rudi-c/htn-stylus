@@ -41,7 +41,20 @@ namespace InkAnalyzerTest
             // Keep the top 3 suggestions for now.
             for (int i = 0; i < Math.Min(3, suggestions.Count); i++)
             {
+                StrokeCollection strokeRepresentation = 
+                    GetStrokesForString(suggestions[i], fontData);
 
+                // In the font maker, the font size is currently 40.0
+                InkUtils.Scale(strokeRepresentation, wordSize / 40.0);
+
+                InkCanvas suggestionCanvas = new InkCanvas();
+                suggestionCanvas.Strokes = strokeRepresentation;
+
+                // We shouldn't be writing on this canvas, it's only for
+                // display purposes.
+                suggestionCanvas.EditingMode = InkCanvasEditingMode.None;
+
+                SuggestionsStack.Children.Add(suggestionCanvas); 
             }
         }
 

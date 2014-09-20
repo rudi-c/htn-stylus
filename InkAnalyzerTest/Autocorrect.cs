@@ -71,7 +71,7 @@ namespace InkAnalyzerTest
                     List<string> suggestions = spellchecker.Suggest(inkWordNode.GetRecognizedString());
                     if (suggestions.Count > 0)
                     {
-                        SuggestionsBox suggestionsBox = new SuggestionsBox(inkWordNode, suggestions);
+                        SuggestionsBox suggestionsBox = new SuggestionsBox(inkWordNode, suggestions, fontData);
 
                         // For now, only autocorrect one word at once.
                         break;
