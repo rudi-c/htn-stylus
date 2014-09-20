@@ -77,4 +77,50 @@ namespace InkAnalyzerTest
                 stylusStrokes[i] = new DataStylusStroke(strokes[i]);
         }
     }
+
+    public class StylusToken
+    {
+        public StrokeCollection strokes;
+        public double width;
+        public double height;
+
+        public void Normalize()
+        {
+            // Normalize to the left edge.
+            double minX = double.MaxValue;
+            double maxX = double.MinValue;
+            foreach (Stroke stroke in strokes)
+            {
+                foreach (StylusPoint point in stroke.StylusPoints)
+                {
+                    minX = Math.Min(minX, point.X);
+                    maxX = Math.Max(maxX, point.X);
+                }
+            }
+            foreach (Stroke stroke in strokes)
+                for (int i = 0; i < stroke.StylusPoints.Count; i++)
+                    // Struct type can't be used as foreach.
+                    stroke.StylusPoints[i] = new StylusPoint(
+                        stroke.StylusPoints[i].X - minX,
+                        stroke.StylusPoints[i].Y);
+
+            width = maxX - minX;
+        }
+
+        public void Scale(double scale)
+        {
+            foreach (Stroke stroke in strokes)
+                for (int i = 0; i < stroke.StylusPoints.Count; i++)
+                    // Struct type can't be used as foreach.
+                    stroke.StylusPoints[i] = new StylusPoint(
+                        stroke.StylusPoints[i].X * scale,
+                        stroke.StylusPoints[i].Y * scale);
+        }
+
+        public StylusToken(StrokeCollection _strokes)
+        {
+            width = 0.0;
+            strokes = _strokes;
+        }
+    }
 }

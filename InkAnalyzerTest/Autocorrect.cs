@@ -20,13 +20,17 @@ using System.Runtime.Serialization.Json;
 
 namespace InkAnalyzerTest
 {
+    // In our app, we define the "font size" of a letter to be 
+    // the median (or midline) minus the baseline.
+    // See http://en.wikipedia.org/wiki/Ascender_(typography)
+
     // Class extensions which contains autocorrection logic.
     public partial class MainWindow : Window
     {
         Hunspell spellchecker = new Hunspell("en_us.aff", "en_us.dic");
         HashSet<InkWordNode> uncheckedNewWordNodes = new HashSet<InkWordNode>();
 
-        Dictionary<char, StrokeCollection> fontData = new Dictionary<char, StrokeCollection>();
+        Dictionary<char, StylusToken> fontData = new Dictionary<char, StylusToken>();
 
         void InkAnalyzer_ContextNodeCreated(object sender, ContextNodeCreatedEventArgs e)
         {
@@ -48,19 +52,10 @@ namespace InkAnalyzerTest
                 {
                     StrokeCollection strokes = token.Value.Representation();
 
-                    // Normalize to the left edge.
-                    double minX = double.MaxValue;
-                    foreach (Stroke stroke in strokes)
-                        foreach (StylusPoint point in stroke.StylusPoints)
-                            minX = Math.Min(minX, point.X);
-                    foreach (Stroke stroke in strokes)
-                        for (int i = 0; i < stroke.StylusPoints.Count; i++)
-                            // Struct type can't be used as foreach.
-                            stroke.StylusPoints[i] = new StylusPoint(
-                                stroke.StylusPoints[i].X - minX,
-                                stroke.StylusPoints[i].Y);
-
-                    fontData.Add(token.Key, strokes);
+                    // We made our characters in 100x100 boxes.
+                    StylusToken stylusToken = new StylusToken(strokes);
+                    stylusToken.Normalize();
+                    fontData.Add(token.Key, stylusToken);
                 }
             }
         }
@@ -76,7 +71,12 @@ namespace InkAnalyzerTest
                     List<string> suggestions = spellchecker.Suggest(inkWordNode.GetRecognizedString());
                     if (suggestions.Count > 0)
                     {
+                        var midline = inkWordNode.GetMidline();
+                        var baseline = inkWordNode.GetBaseline();
 
+                        // Assume that the midline and baseline are horizontal lines
+                        // i.e. two points, same y coordinate.
+                        double wordSize = midline[0].Y - baseline[0].Y;
                     }
                 }
             }
@@ -84,11 +84,35 @@ namespace InkAnalyzerTest
             uncheckedNewWordNodes.Clear();
         }
 
-        void GetStrokesForString(string text)
+        // Generates a collection of strokes representing an entire word.
+        StrokeCollection GetStrokesForString(string text)
         {
             double currentX = 0.0;
 
             StrokeCollection stringStrokes = new StrokeCollection();
+
+            foreach (char c in text)
+            {
+                if (fontData.Keys.Contains(c))
+                {
+                    StylusToken token = fontData[c];
+
+                    foreach (Stroke stroke in token.strokes)
+                    {
+                        StylusPointCollection newPoints = new StylusPointCollection();
+                        foreach (StylusPoint point in stroke.StylusPoints)
+                        {
+                            newPoints.Add(new StylusPoint(
+                                point.X + currentX, point.Y));
+                        }
+                        stringStrokes.Add(new Stroke(newPoints));
+                    }
+
+                    currentX += token.width;
+                }
+            }
+
+            return stringStrokes;
         }
     }
 }
