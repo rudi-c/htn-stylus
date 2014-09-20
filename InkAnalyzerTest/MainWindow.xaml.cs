@@ -36,14 +36,12 @@ namespace InkAnalyzerTest
 
         void Strokes_StrokesChanged(object sender, StrokeCollectionChangedEventArgs e)
         {
-            if (e.Added.Count > 0)
-            {
-                inkAnalyzer.AddStrokes(e.Added);
+            foreach (Stroke stroke in e.Added) {
+                inkAnalyzer.AddStroke(stroke);
             }
 
-            if (e.Removed.Count > 0)
-            {
-                inkAnalyzer.RemoveStrokes(e.Removed);
+            foreach (Stroke stroke in e.Removed) {
+                inkAnalyzer.RemoveStroke(stroke);
             }
         }
 
