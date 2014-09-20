@@ -71,48 +71,15 @@ namespace InkAnalyzerTest
                     List<string> suggestions = spellchecker.Suggest(inkWordNode.GetRecognizedString());
                     if (suggestions.Count > 0)
                     {
-                        var midline = inkWordNode.GetMidline();
-                        var baseline = inkWordNode.GetBaseline();
+                        SuggestionsBox suggestionsBox = new SuggestionsBox(inkWordNode, suggestions);
 
-                        // Assume that the midline and baseline are horizontal lines
-                        // i.e. two points, same y coordinate.
-                        double wordSize = midline[0].Y - baseline[0].Y;
+                        // For now, only autocorrect one word at once.
+                        break;
                     }
                 }
             }
 
             uncheckedNewWordNodes.Clear();
-        }
-
-        // Generates a collection of strokes representing an entire word.
-        StrokeCollection GetStrokesForString(string text)
-        {
-            double currentX = 0.0;
-
-            StrokeCollection stringStrokes = new StrokeCollection();
-
-            foreach (char c in text)
-            {
-                if (fontData.Keys.Contains(c))
-                {
-                    StylusToken token = fontData[c];
-
-                    foreach (Stroke stroke in token.strokes)
-                    {
-                        StylusPointCollection newPoints = new StylusPointCollection();
-                        foreach (StylusPoint point in stroke.StylusPoints)
-                        {
-                            newPoints.Add(new StylusPoint(
-                                point.X + currentX, point.Y));
-                        }
-                        stringStrokes.Add(new Stroke(newPoints));
-                    }
-
-                    currentX += token.width;
-                }
-            }
-
-            return stringStrokes;
         }
     }
 }
