@@ -11,6 +11,41 @@ using System.Windows.Media;
 
 namespace InkAnalyzerTest
 {
+    class CorrRandExp
+    {
+        double stdev, preserve;
+        double prev;
+        public CorrRandExp(double _stdev, double _preserve)
+        {
+            stdev = _stdev; preserve = _preserve;
+            prev = 0;
+        }
+        public double next()
+        {
+            prev = prev * preserve + InkUtils.stdNorm() * stdev;
+            return prev;
+        }
+    }
+    class CorrRandWindow {
+        double stdev;
+        int i, window;
+        double[] buffer;
+        double prev;
+        public CorrRandWindow(double _stdev, int _window)
+        {
+            stdev = _stdev;
+            window = _window;
+            i = 0;
+            buffer = new double[window];
+            prev = InkUtils.stdNorm() * stdev * Math.Sqrt(window);
+        }
+        public double next()
+        {
+            prev = prev + (buffer[(i + 1) % window] = InkUtils.stdNorm() * stdev) - buffer[i % window];
+            ++i;
+            return prev;
+        }
+    }
     class InkUtils
     {
         public static void Scale(StrokeCollection strokes, double scale)
@@ -193,6 +228,128 @@ namespace InkAnalyzerTest
             {
                 inkAnalyzer.AddStrokes(strokes);
             }
+        }
+
+        public static StylusPoint sp(Point p)
+        {
+            return new StylusPoint(p.X, p.Y);
+        }
+
+        public static StylusPointCollection box(Rect rect)
+        {
+            StylusPointCollection r = new StylusPointCollection();
+            r.Add(sp(rect.TopLeft));
+            r.Add(sp(rect.TopRight));
+            r.Add(sp(rect.BottomRight));
+            r.Add(sp(rect.BottomLeft));
+            r.Add(sp(rect.TopLeft));
+            return r;
+        }
+
+        static bool stdNormState = false;
+        static double stdNormNextResult = 0;
+        static Random stdNormRandom = new Random();
+        /// <summary>
+        /// Generates a random number according to the standard normal distribution.
+        /// </summary>
+        /// <returns>the number</returns>
+        public static double stdNorm()
+        {
+            if (stdNormState)
+            {
+                stdNormState = false;
+                return stdNormNextResult;
+            }
+            double r = Math.Sqrt(-2*Math.Log(1 - stdNormRandom.NextDouble()));
+            double theta = 2*Math.PI*stdNormRandom.NextDouble();
+            stdNormNextResult = r * Math.Cos(theta);
+            return r * Math.Sin(theta);
+        }
+
+        public static StylusPointCollection resample(StylusPointCollection pts, double spacing = 2)
+        {
+            if (pts.Count <= 1) return new StylusPointCollection(pts);
+            StylusPointCollection r = new StylusPointCollection();
+            int i = 0;
+            StylusPoint cur = pts[i], next = pts[i + 1];
+            double dist = Math.Sqrt(distSquared(cur, next));
+            double offset = 0;
+            while (i + 1 < pts.Count)
+            {
+                if (offset >= dist)
+                {
+                    offset -= dist;
+                    ++i;
+                    cur = next;
+                    if (i + 1 >= pts.Count)
+                    {
+                        break;
+                    }
+                    next = pts[i + 1];
+                    dist = Math.Sqrt(distSquared(cur, next));
+                    continue;
+                }
+                double dX = next.X - cur.X, dY = next.Y - cur.Y;
+                float dP = next.PressureFactor - cur.PressureFactor;
+                double factor = offset / dist;
+                r.Add(new StylusPoint(
+                    cur.X + factor * dX,
+                    cur.Y + factor * dY,
+                    cur.PressureFactor + (float)factor * dP
+                    ));
+                offset += spacing;
+            }
+            r.Add(cur);
+            return r;
+        }
+
+        public static StylusPointCollection xkcd(StylusPointCollection pts)
+        {
+            StylusPointCollection r = resample(pts);
+            if (r.Count < 2) return r;
+            StylusPoint prev = r[0];
+            CorrRandExp r1 = new CorrRandExp(0.15, 0.99);
+            CorrRandWindow r2 = new CorrRandWindow(0.1, 20);
+            for (int i = 1; i+1 < r.Count; ++i)
+            {
+                StylusPoint cur = r[i], next = r[i + 1];
+                double dX = next.X - prev.X, dY = next.Y - prev.Y;
+                double sqrNorm = dX * dX + dY * dY;
+                if (sqrNorm == 0)
+                {
+                    continue;
+                }
+                double amt = r1.next();// +r2.next();
+                double factor = amt / Math.Sqrt(sqrNorm);
+                prev = cur;
+                cur.X -= factor * dY;
+                cur.Y += factor * dX;
+                r[i] = cur;
+            }
+            return r;
+        }
+
+        public static void depressurize(StylusPointCollection col)
+        {
+            for (int i = 0; i < col.Count; ++i)
+            {
+                col[i] = new StylusPoint(
+                    col[i].X,
+                    col[i].Y
+                    );
+            }
+        }
+        public static bool isVertical(StylusPoint a, StylusPoint b)
+        {
+            return Math.Abs((b.X - a.X) / (b.Y - a.Y)) < 0.7;
+        }
+        public static bool isHorizontal(StylusPoint a, StylusPoint b)
+        {
+            return Math.Abs((b.Y - a.Y) / (b.X - a.X)) < 0.7;
+        }
+        public static bool similar(double a, double b)
+        {
+            return Math.Abs(a - b) < Math.Log(Math.Max(a, b)) * 3.373 - 5;
         }
     }
 }

@@ -24,6 +24,7 @@ namespace InkAnalyzerTest
         InkAnalyzer inkAnalyzer = new InkAnalyzer();
         CanvasEditor canvasEditor = new CanvasEditor();
         Headings headings = new Headings();
+        GraphAnalyzer graphAnalyzer = new GraphAnalyzer();
 
         public MainWindow()
         {
@@ -64,7 +65,10 @@ namespace InkAnalyzerTest
         {
             foreach(Stroke stroke in e.Added)
             {
-                inkAnalyzer.AddStroke(stroke);
+                if (!graphAnalyzer.newStroke(stroke))
+                {
+                    inkAnalyzer.AddStroke(stroke);
+                }
             }
 
             foreach(Stroke stroke in e.Removed)
