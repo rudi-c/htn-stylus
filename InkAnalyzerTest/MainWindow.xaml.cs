@@ -59,6 +59,8 @@ namespace InkAnalyzerTest
 
             AnalysisView.Items.Add(rootTreeItem);
             BuildTree(inkAnalyzer.RootNode, rootTreeItem);
+
+            canvasEditor.analyzeStrokeEvent(inkAnalyzer, MainInkCanvas);
         }
 
         // http://msdn.microsoft.com/en-us/library/system.windows.ink.contextnode(v=vs.90).aspx
