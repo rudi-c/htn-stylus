@@ -22,6 +22,7 @@ namespace InkAnalyzerTest
     public partial class MainWindow : Window
     {
         InkAnalyzer inkAnalyzer = new InkAnalyzer();
+        CanvasEditor canvasEditor = new CanvasEditor();
 
         public MainWindow()
         {
