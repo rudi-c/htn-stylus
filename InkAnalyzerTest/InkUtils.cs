@@ -46,6 +46,65 @@ namespace InkAnalyzerTest
             return prev;
         }
     }
+
+    public class ColorGen
+    {
+        const double delta = 2.291796067500630911;
+        double current;
+        public ColorGen() {
+            current = new Random().NextDouble() * 6;
+        }
+
+        Color curColor()
+        {
+            double r = 0, g = 0, b = 0;
+            if (current < 1)
+            {
+                r = 1;
+                g = current;
+            }
+            else if (current < 2)
+            {
+                r = 2 - current;
+                g = 1;
+            }
+            else if (current < 3)
+            {
+                g = 1;
+                b = current - 2;
+            }
+            else if (current < 4)
+            {
+                g = 4 - current;
+                b = 1;
+            }
+            else if (current < 5)
+            {
+                b = 1;
+                r = current - 4;
+            }
+            else
+            {
+                b = 6 - current;
+                r = 1;
+            }
+            double luma = 0.4 * r + 0.5 * g + 0.35 * b; // BS
+            double factor = 255 * 0.35 / luma;
+            r *= factor; g *= factor; b *= factor;
+            if (r > 255) r = 255;
+            if (g > 255) g = 255;
+            if (b > 255) b = 255;
+            return Color.FromRgb((byte)r, (byte)g, (byte)b);
+        }
+
+        public Color nextColor()
+        {
+            Color r = curColor();
+            current += delta;
+            if (current >= 6) current -= 6;
+            return r;
+        }
+    }
     class InkUtils
     {
         public static void Scale(StrokeCollection strokes, double scale)

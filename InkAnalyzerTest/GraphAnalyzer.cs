@@ -47,8 +47,10 @@ namespace InkAnalyzerTest
         Stroke xAxis, yAxis;
         Point origin, xEnd, yEnd;
         StrokeCollection curves;
+        ColorGen colGen;
         public XYGraph(IDelegate del, Stroke b) : base(del, b) {
             curves = new StrokeCollection();
+            colGen = new ColorGen();
         }
         public override bool takeStroke(Stroke s)
         {
@@ -267,6 +269,7 @@ namespace InkAnalyzerTest
                 }
             }
             Stroke s = new Stroke(InkUtils.xkcd(r));
+            s.DrawingAttributes.Color = colGen.nextColor();
             addStroke(s);
         }
 
