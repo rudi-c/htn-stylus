@@ -174,6 +174,16 @@ namespace InkAnalyzerTest
             double dx = p1.X - p2.X, dy = p1.Y - p2.Y;
             return dx * dx + dy * dy;
         }
+        public static double distSquared(Point p1, Point p2)
+        {
+            double dx = p1.X - p2.X, dy = p1.Y - p2.Y;
+            return dx * dx + dy * dy;
+        }
+        public static double slope(Point p1, Point p2)
+        {
+            double dx = p1.X - p2.X, dy = p1.Y - p2.Y;
+            return dy / dx;
+        }
 
         public static double lineDistSquared(StylusPoint a, StylusPoint b, StylusPoint p)
         {
@@ -325,9 +335,10 @@ namespace InkAnalyzerTest
             {
                 InkDrawingNode drawing = node as InkDrawingNode;
                 PointCollection boundingBox = drawing.GetRotatedBoundingBox();
-                //TODO: Check for rotated boundingBox instead.
-                Rect bounds = stroke.GetBounds();
-                return bounds.Height / bounds.Width < 0.1;
+                double d1 = distSquared(boundingBox[0], boundingBox[1]);
+                double d2 = distSquared(boundingBox[1], boundingBox[2]);
+                return (d2 > 0 && d1 / d2 > 10 * 10 && d1 > 100 && Math.Abs(slope(boundingBox[0], boundingBox[1])) < 0.5)
+                    || (d1 > 0 && d2 / d1 > 10 * 10 && d2 > 100 && Math.Abs(slope(boundingBox[1], boundingBox[2])) < 0.5);
             }
             return false;
         }

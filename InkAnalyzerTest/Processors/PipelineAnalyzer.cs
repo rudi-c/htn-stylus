@@ -95,7 +95,6 @@ namespace InkAnalyzerTest.Processors
 
         private void fireoff()
         {
-            inkAnalyzer.DirtyRegion.MakeInfinite();
             running = true;
             if (!inkAnalyzer.BackgroundAnalyze())
             {
