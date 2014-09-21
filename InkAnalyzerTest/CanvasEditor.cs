@@ -331,22 +331,29 @@ namespace InkAnalyzerTest
 
         public void insertStrokes(InkAnalyzer analyzer, InkCanvas mainInkCanvas, InkCanvas insertionCanvas)
         {
-            double bestY = 10000;
+            double bestY = -10000;
             foreach (ContextNode node in analyzer.FindLeafNodes())
             {
                 double y1 = strokeToBeReplaced.GetBounds().Y;
                 double y2 = node.Strokes.GetBounds().Y;
-                if (y2 - y1 > 0 && y2 - y1 < bestY - y1)
+                if (y1 - y2 > 0 && y1 - y2 < y1 - bestY)
                 {
                     bestY = y2;
                 }
             }
-            mainInkCanvas.Strokes.Add(insertionCanvas.Strokes.Clone());
-            foreach (Stroke stroke in insertionCanvas.Strokes)
+            if (bestY == -10000)
+            {
+                bestY = strokeToBeReplaced.GetBounds().Y;
+            }
+            StrokeCollection strokeCollection = insertionCanvas.Strokes.Clone();
+            mainInkCanvas.Strokes.Add(strokeCollection);
+            double bestX = strokeToBeReplaced.GetBounds().X;
+            double strokeX = strokeCollection.GetBounds().X;
+            double strokeY = strokeCollection.GetBounds().Y;
+            foreach (Stroke stroke in strokeCollection)
             {
                 Matrix inkTransform = new Matrix();
-                double bestX = strokeToBeReplaced.GetBounds().X;
-                inkTransform.Translate(bestX, bestY);
+                inkTransform.Translate(bestX - strokeX, bestY - strokeY);
                 stroke.Transform(inkTransform, false);
             }
             insertionCanvas.Strokes.Clear();
