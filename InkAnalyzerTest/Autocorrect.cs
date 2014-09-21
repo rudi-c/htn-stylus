@@ -73,7 +73,7 @@ namespace InkAnalyzerTest
             suggestionsBox.Visibility = Visibility.Collapsed;
         }
 
-        void AutocorrectNewWordNodes()
+        public void AutocorrectNewWordNodes()
         {
             foreach (InkWordNode inkWordNode in uncheckedNewWordNodes)
             {

@@ -60,6 +60,7 @@ namespace InkAnalyzerTest
             pipeline.AddProcessor(new StrikethroughProcessor(MainInkCanvas));
             pipeline.AddProcessor(new ReflowProcessor(MainInkCanvas));
             pipeline.AddProcessor(new NavigationProcessor(headings));
+            pipeline.AddProcessor(new AutocorrectProcessor(this));
         }
 
         void pipeline_PipelineComplete(object sender, EventArgs e)
