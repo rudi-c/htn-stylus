@@ -23,9 +23,13 @@
             <Button Name="Restore"  Content="-" Foreground="Black" FontSize="14"></Button> -->
         </StackPanel>
 
-        <InkCanvas Name="MainInkCanvas" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2"
-                   MouseMove = "MainInkCanvas_MouseMove" StylusMove = "MainInkCanvas_StylusMove"
-                   StylusLeave="MainInkCanvas_StylusLeave" StylusOutOfRange="MainInkCanvas_StylusOutOfRange"  />
+        <ScrollViewer Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2"
+                      HorizontalScrollBarVisibility="Auto">
+            <InkCanvas Name="MainInkCanvas" 
+                       MouseMove = "MainInkCanvas_MouseMove" StylusMove = "MainInkCanvas_StylusMove" 
+                       StylusLeave="MainInkCanvas_StylusLeave" StylusOutOfRange="MainInkCanvas_StylusOutOfRange"  />
+        </ScrollViewer>
+
         <Rectangle Name="SidePanelRect" Fill="LightGray" Grid.Row="1" Grid.Column="0" Grid.RowSpan="2"
                    MouseMove = "MainInkCanvas_MouseMove" StylusMove = "MainInkCanvas_StylusMove" />
 
