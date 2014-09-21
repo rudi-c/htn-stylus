@@ -332,6 +332,7 @@ namespace InkAnalyzerTest
         public void insertStrokes(InkAnalyzer analyzer, InkCanvas mainInkCanvas, InkCanvas insertionCanvas)
         {
             double bestY = -10000;
+            ContextNode selectedNode = null;
             foreach (ContextNode node in analyzer.FindLeafNodes())
             {
                 double y1 = strokeToBeReplaced.GetBounds().Y;
@@ -339,6 +340,7 @@ namespace InkAnalyzerTest
                 if (y1 - y2 > 0 && y1 - y2 < y1 - bestY)
                 {
                     bestY = y2;
+                    selectedNode = node;
                 }
             }
             if (bestY == -10000)
@@ -350,13 +352,30 @@ namespace InkAnalyzerTest
             double bestX = strokeToBeReplaced.GetBounds().X;
             double strokeX = strokeCollection.GetBounds().X;
             double strokeY = strokeCollection.GetBounds().Y;
-            foreach (Stroke stroke in strokeCollection)
-            {
-                Matrix inkTransform = new Matrix();
-                inkTransform.Translate(bestX - strokeX, bestY - strokeY);
-                stroke.Transform(inkTransform, false);
-            }
-            insertionCanvas.Strokes.Clear();
+            Matrix inkTransform = new Matrix();
+            inkTransform.Translate(bestX - strokeX + 20, bestY - strokeY);
+            strokeCollection.Transform(inkTransform, false);
+            if (selectedNode != null) {
+                for (int i = 0; i < selectedNode.ParentNode.SubNodes.Count; i++)
+                {
+                    ContextNode siblingNode = selectedNode.ParentNode.SubNodes[i];
+                    double width = strokeCollection.GetBounds().Width;
+                    double startX = strokeCollection.GetBounds().X;
+                    for (int j = 0; j < siblingNode.Strokes.Count; j++)
+                    {
+                        Stroke stroke = siblingNode.Strokes[j];
+                        double offsetX = stroke.GetBounds().X;
+                        
+                        if (offsetX - startX > 0)
+                        {
+                            Matrix transform = new Matrix();
+                            transform.Translate(width, 0);
+                            stroke.Transform(transform, false);
+                        } 
+                    }
+                }
+            }            
+                insertionCanvas.Strokes.Clear();
             mainInkCanvas.Strokes.Remove(strokeToBeReplaced);
         }
 
