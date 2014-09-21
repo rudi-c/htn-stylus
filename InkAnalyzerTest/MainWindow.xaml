@@ -17,6 +17,7 @@
         </Grid.ColumnDefinitions>
 
         <ScrollViewer Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2"
+                      Name="MainScrollView"
                       HorizontalScrollBarVisibility="Auto">
             <InkCanvas Name="MainInkCanvas" 
                        MouseMove = "MainInkCanvas_MouseMove" StylusMove = "MainInkCanvas_StylusMove" 
