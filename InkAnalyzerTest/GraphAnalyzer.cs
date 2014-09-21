@@ -12,7 +12,7 @@ namespace InkAnalyzerTest
 
     public abstract class Graph
     {
-        protected Stroke box;
+        public Stroke box;
         protected Rect bounds;
         protected InkAnalyzer analyzer;
 
@@ -31,6 +31,8 @@ namespace InkAnalyzerTest
         {
             return s.HitTest(bounds, 80);
         }
+        public abstract void allStrokes(Action<Stroke> f);
+        public abstract void remove(Stroke s);
     }
 
     public class XYGraph : Graph
@@ -38,7 +40,9 @@ namespace InkAnalyzerTest
         Stroke xAxis, yAxis;
         Point origin, xEnd, yEnd;
         StrokeCollection curves;
-        public XYGraph(Stroke b) : base(b) { }
+        public XYGraph(Stroke b) : base(b) {
+            curves = new StrokeCollection();
+        }
         public override bool takeStroke(Stroke s)
         {
             InkUtils.depressurize(s.StylusPoints);
@@ -112,12 +116,12 @@ namespace InkAnalyzerTest
                         s.StylusPoints = InkUtils.xkcd(new StylusPointCollection(new Point[] { origin, yEnd }));
                         return true;
                     }
-            notY: { }
+                notY: { }
                 }
             }
             else
             {
-                StylusPoint spOrigin = InkUtils.sp(origin), spXEnd = InkUtils.sp(xEnd);
+                StylusPoint spOrigin = InkUtils.sp(origin), spXEnd = InkUtils.sp(xEnd), spYEnd = InkUtils.sp(yEnd);
                 // Support bars
                 if (col.Count == 4
                     // Vertical bars
@@ -139,12 +143,34 @@ namespace InkAnalyzerTest
                         new Point(x2, origin.Y)
                     }));
                 }
+                else if (col.Count == 4
+                    // Horizontal bars
+                    && InkUtils.isHorizontal(col[0], col[1])
+                    //&& InkUtils.isVertical(col[1], col[2])
+                    && InkUtils.isHorizontal(col[2], col[3])
+                    && InkUtils.similar(Math.Sqrt(InkUtils.distSquared(col[0], col[1])),
+                    Math.Sqrt(InkUtils.distSquared(col[2], col[3])))
+                    && InkUtils.lineDistSquared(spOrigin, spYEnd, col[0]) < 400
+                    && InkUtils.lineDistSquared(spOrigin, spYEnd, col[3]) < 400)
+                {
+                    double y1 = (col[0].Y + col[1].Y) / 2;
+                    double y2 = (col[2].Y + col[3].Y) / 2;
+                    double x = (col[1].X + col[2].X) / 2;
+                    s.StylusPoints = InkUtils.xkcd(new StylusPointCollection(new Point[] {
+                        new Point(origin.X, y1),
+                        new Point(x, y1),
+                        new Point(x, y2),
+                        new Point(origin.X, y2)
+                    }));
+                }
                 // Maybe it's inside the graph itself?
                 else if (s.HitTest(new Rect(xEnd, yEnd), 80))
                 {
                     s.StylusPoints = InkUtils.xkcd(s.StylusPoints);
                 }
             }
+
+            curves.Add(s);
 //            s.StylusPoints = InkUtils.xkcd(col);
 
             //analyzer.AddStroke(s);
@@ -166,16 +192,42 @@ namespace InkAnalyzerTest
                 }
             }
         }
+        public override void allStrokes(Action<Stroke> f)
+        {
+            if (xAxis != null) f(xAxis);
+            if (yAxis != null) f(yAxis);
+            foreach (Stroke s in curves)
+            {
+                f(s);
+            }
+        }
+        public override void remove(Stroke s)
+        {
+            if (s == xAxis)
+            {
+                xAxis = null;
+            }
+            else if (s == yAxis)
+            {
+                yAxis = null;
+            }
+            else
+            {
+                curves.Remove(s);
+            }
+        }
     }
 
     public class GraphAnalyzer
     {
         InkAnalyzer analyzer;
-        List<Graph> graphs;
+        HashSet<Graph> graphs;
+        Dictionary<Stroke, Graph> strokes;
         public GraphAnalyzer()
         {
             analyzer = new InkAnalyzer();
-            graphs = new List<Graph>();
+            graphs = new HashSet<Graph>();
+            strokes = new Dictionary<Stroke, Graph>();
         }
 
         /// <summary>
@@ -187,13 +239,16 @@ namespace InkAnalyzerTest
         {
             foreach (Graph g in graphs)
             {
-                if (g.containsStroke(stroke) && g.takeStroke(stroke)) return true;
+                if (g.containsStroke(stroke) && g.takeStroke(stroke))
+                {
+                    strokes.Add(stroke, g);
+                    return true;
+                }
             }
             Stroke copy = stroke.Clone();
             analyzer.AddStroke(copy);
 
-            // TODO: THIS MIGHT NEED FIXING
-            //analyzer.Analyze();
+            analyzer.Analyze();
 
             StrokeCollection sc = new StrokeCollection(new Stroke[] { copy });
             ContextNodeCollection ctxNodes = analyzer.FindInkLeafNodes(sc);
@@ -201,13 +256,34 @@ namespace InkAnalyzerTest
             {
                 if (ctxNode is InkDrawingNode && (ctxNode as InkDrawingNode).GetShapeName() == "Rectangle")
                 {
-                    graphs.Add(new XYGraph(stroke));
+                    Graph g = new XYGraph(stroke);
+                    graphs.Add(g);
+                    strokes.Add(stroke, g);
                     analyzer.RemoveStroke(copy);
                     return true;
                 }
             }
             analyzer.RemoveStroke(copy);
             return false;
+        }
+
+        public void removeStroke(Stroke stroke)
+        {
+            if (!strokes.ContainsKey(stroke))
+            {
+                return;
+            }
+            Graph g = strokes[stroke];
+            if (g.box == stroke)
+            {
+                // destroy the whole thing
+                g.allStrokes(s => strokes.Remove(s));
+                graphs.Remove(g);
+            }
+            else
+            {
+                g.remove(stroke);
+            }
         }
     }
 

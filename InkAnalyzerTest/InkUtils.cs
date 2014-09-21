@@ -187,7 +187,40 @@ namespace InkAnalyzerTest
             return perpX * perpX + perpY * perpY;
         }
 
-        public static StylusPointCollection toPolyline(StylusPointCollection points)
+        public static StylusPointCollection toPolyline(StylusPointCollection points_)
+        {
+            const int separation = 3;
+            if (points_.Count <= 1) return new StylusPointCollection(points_);
+            StylusPointCollection points = resample(points_, 3);
+            StylusPointCollection r = new StylusPointCollection();
+            r.Add(points[0]);
+            int i;
+            for (i = separation; i + separation < points.Count; ++i)
+            {
+                StylusPoint prev = points[i - separation], cur = points[i], next = points[i + separation];
+                double dx1 = cur.X - prev.X, dy1 = cur.Y - prev.Y;
+                double n1 = Math.Sqrt(dx1 * dx1 + dy1 * dy1);
+                dx1 /= n1; dy1 /= n1;
+                double dx2 = next.X - cur.X, dy2 = next.Y - cur.Y;
+                double n2 = Math.Sqrt(dx2 * dx2 + dy2 * dy2);
+                dx2 /= n2; dy2 /= n2;
+                if (dx1 * dx2 + dy1 * dy2 < 0.7)
+                {
+                    if (i < separation*2)
+                    {
+                        r.RemoveAt(0);
+                    }
+                    r.Add(points[i]);
+                    i = i + separation * 2 - 1;
+                }
+            }
+            if (i + separation == points.Count)
+            {
+                r.Add(points[points.Count - 1]);
+            }
+            return r;
+        }
+        public static StylusPointCollection toPolyline2(StylusPointCollection points)
         {
             StylusPointCollection r = new StylusPointCollection();
             if (points.Count == 0) return r;
@@ -368,9 +401,9 @@ namespace InkAnalyzerTest
             StylusPoint prev = r[0];
             CorrRandExp r1 = new CorrRandExp(0.15, 0.99);
             CorrRandWindow r2 = new CorrRandWindow(0.1, 20);
-            for (int i = 1; i+1 < r.Count; ++i)
+            for (int i = 0; i < r.Count; ++i)
             {
-                StylusPoint cur = r[i], next = r[i + 1];
+                StylusPoint cur = r[i], next = i+1<r.Count?r[i + 1]:cur;
                 double dX = next.X - prev.X, dY = next.Y - prev.Y;
                 double sqrNorm = dX * dX + dY * dY;
                 if (sqrNorm == 0)
@@ -407,7 +440,7 @@ namespace InkAnalyzerTest
         }
         public static bool similar(double a, double b)
         {
-            return Math.Abs(a - b) < Math.Log(Math.Max(a, b)) * 3.373 - 5;
+            return Math.Abs(a - b) < Math.Log(Math.Max(a, b)) * 3.5 - 5;
         }
     }
 }

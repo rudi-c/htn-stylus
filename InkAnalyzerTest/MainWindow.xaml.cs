@@ -1,6 +1,7 @@
 ﻿using InkAnalyzerTest.Processors;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,11 +23,13 @@ namespace InkAnalyzerTest
     /// </summary>
     public partial class MainWindow : Window
     {
-        PipelineAnalyzer pipeline ;
         InkAnalyzer inkAnalyzer;
-        Headings headings = new Headings();
+        PipelineAnalyzer pipeline;
+        Headings headings;
         GraphAnalyzer graphAnalyzer = new GraphAnalyzer();
-        bool sidebarVisible = false;
+        InsertionProcessor inserter;
+
+        bool continuousAnalyze = false;
 
         public MainWindow()
         {
@@ -35,35 +38,40 @@ namespace InkAnalyzerTest
             AutocorrectInit();
         }
 
-        private void InkWindow_Loaded(object sender, RoutedEventArgs e)
+        void DisableDictionary()
         {
-            MainInkCanvas.Strokes.StrokesChanged += Strokes_StrokesChanged;
-            inkAnalyzer = new InkAnalyzer(this.Dispatcher);
-            pipeline = new PipelineAnalyzer(inkAnalyzer);
-            headings.sidebar = SideInkCanvas;
-
-            inkAnalyzer.IntermediateResultsUpdated += InkAnalyzer_IntermediateResultsUpdated;
-            inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
-            pipeline.PipelineComplete += pipeline_PipelineComplete;
-            
-            SideInkCanvas.EditingMode = InkCanvasEditingMode.None;
-            MainInkCanvas.MouseMove += MainInkCanvas_MouseMove;
-            SidePanelRect.MouseMove += MainInkCanvas_MouseMove;
-            MainInkCanvas.StylusMove += MainInkCanvas_StylusMove;
-            SidePanelRect.StylusMove += MainInkCanvas_StylusMove;
-            SideInkCanvas.StylusUp += SideInkCanvas_StylusUp;
-
             AnalysisHintNode hint = inkAnalyzer.CreateAnalysisHint();
             hint.Factoid = "NONE";
             hint.Location.MakeInfinite();
+        }
 
+        private void InkWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            //Initialize analyzer and pipeline
+            inkAnalyzer = new InkAnalyzer(this.Dispatcher);
+            pipeline = new PipelineAnalyzer(inkAnalyzer);
+
+            //Initialize headings
+            headings = new Headings();
+            headings.sidebar = SideInkCanvas;
+
+            MainInkCanvas.Strokes.StrokesChanged += Strokes_StrokesChanged;
+            inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
+            pipeline.PipelineComplete += pipeline_PipelineComplete;
+
+            DisableDictionary();
+
+            inserter = new InsertionProcessor(MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent, InsertionButton);
+            pipeline.AddProcessor(inserter);
             pipeline.AddProcessor(new StrikethroughProcessor(MainInkCanvas));
-            pipeline.AddProcessor(new NavigationProcessor(headings));
             pipeline.AddProcessor(new ReflowProcessor(MainInkCanvas));
+            pipeline.AddProcessor(new NavigationProcessor(headings));
+            pipeline.AddProcessor(new AutocorrectProcessor(this));
         }
 
         void pipeline_PipelineComplete(object sender, EventArgs e)
         {
+            // We're completely rebuilding the tree view.
             AnalysisView.Items.Clear();
 
             TreeViewItem rootTreeItem = new TreeViewItem();
@@ -74,10 +82,6 @@ namespace InkAnalyzerTest
             BuildTree(inkAnalyzer.RootNode, rootTreeItem);
 
             GenerateBoundingBoxes();
-        }
-
-        void InkAnalyzer_IntermediateResultsUpdated(object sender, ResultsUpdatedEventArgs e)
-        {
         }
 
         void SideInkCanvas_StylusUp(object sender, StylusEventArgs e)
@@ -121,7 +125,7 @@ namespace InkAnalyzerTest
 
         void Strokes_StrokesChanged(object sender, StrokeCollectionChangedEventArgs e)
         {
-            foreach(Stroke stroke in e.Added)
+            foreach (Stroke stroke in e.Added)
             {
                 if (!graphAnalyzer.newStroke(stroke))
                 {
@@ -131,8 +135,9 @@ namespace InkAnalyzerTest
                 AutocorrectHandleAddStroke(stroke);
             }
 
-            foreach(Stroke stroke in e.Removed)
+            foreach (Stroke stroke in e.Removed)
             {
+                graphAnalyzer.removeStroke(stroke);
                 // If we erase a word and try to replace it with autocorrect
                 // suggestions, there's no good way to define the behavior
                 // so just hide the suggestions.
@@ -151,7 +156,7 @@ namespace InkAnalyzerTest
         {
             InkInsertionCanvasParent.Visibility = Visibility.Hidden;
             InsertionButton.Visibility = Visibility.Hidden;
-            //canvasEditor.insertStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas);
+            inserter.insertStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas);
         }
 
         // http://msdn.microsoft.com/en-us/library/system.windows.ink.contextnode(v=vs.90).aspx
@@ -159,23 +164,23 @@ namespace InkAnalyzerTest
         {
             parentTNode.IsExpanded = true;
 
-            foreach(ContextNode cNode in parentCNode.SubNodes)
+            foreach (ContextNode cNode in parentCNode.SubNodes)
             {
                 // Create new tree node corresponding to context node.
                 TreeViewItem tNode = new TreeViewItem();
                 tNode.Tag = cNode;
                 tNode.Header = cNode.ToString();
 
-                if(cNode is InkWordNode)
+                if (cNode is InkWordNode)
                 {
                     tNode.Header += ": " + (cNode as InkWordNode).GetRecognizedString();
                 }
-                else if(cNode is InkDrawingNode)
+                else if (cNode is InkDrawingNode)
                 {
                     tNode.Header += ": " + (cNode as InkDrawingNode).GetShapeName();
                 }
 
-                if(cNode.IsConfirmed(ConfirmationType.NodeTypeAndProperties))
+                if (cNode.IsConfirmed(ConfirmationType.NodeTypeAndProperties))
                 {
                     tNode.Header += "Confirmed.";
                 }
@@ -188,7 +193,7 @@ namespace InkAnalyzerTest
         private void AnalysisView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             TreeViewItem selectedItem = e.NewValue as TreeViewItem;
-            if(selectedItem == null)
+            if (selectedItem == null)
                 return;
 
             ContextNode cNode = (ContextNode) selectedItem.Tag;
@@ -198,10 +203,10 @@ namespace InkAnalyzerTest
 
         private void MarkNodeAsRed(ContextNode cNode)
         {
-            foreach(Stroke stroke in MainInkCanvas.Strokes)
+            foreach (Stroke stroke in MainInkCanvas.Strokes)
                 stroke.DrawingAttributes.Color = Colors.Black;
 
-            foreach(Stroke stroke in cNode.Strokes)
+            foreach (Stroke stroke in cNode.Strokes)
                 stroke.DrawingAttributes.Color = Colors.Red;
         }
 
@@ -214,6 +219,16 @@ namespace InkAnalyzerTest
         {
             OverlayInkCanvas.Visibility = Visibility.Visible;
             GenerateBoundingBoxes();
+        }
+
+        private void ContinuousCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            continuousAnalyze = false;
+        }
+
+        private void ContinuousCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            continuousAnalyze = true;
         }
 
         private void GenerateBoundingBoxes(ContextNode node = null)
@@ -273,6 +288,18 @@ namespace InkAnalyzerTest
             // Recurse
             foreach (ContextNode child in node.SubNodes)
                 GenerateBoundingBoxes(child);
+        }
+
+        private void MainInkCanvas_StylusLeave(object sender, StylusEventArgs e)
+        {
+            if (continuousAnalyze)
+                inkAnalyzer.BackgroundAnalyze();
+        }
+
+        private void MainInkCanvas_StylusOutOfRange(object sender, StylusEventArgs e)
+        {
+            if (continuousAnalyze)
+                inkAnalyzer.BackgroundAnalyze();
         }
     }
 }

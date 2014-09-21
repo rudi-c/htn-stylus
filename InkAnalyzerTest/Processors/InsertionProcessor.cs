@@ -9,23 +9,32 @@ using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace InkAnalyzerTest
+namespace InkAnalyzerTest.Processors
 {
-    public class CanvasEditor
+    public class InsertionProcessor : InkProcessor
     {
         Stroke strokeToBeReplaced;
+        InkCanvas mainInkCanvas;
+        InkCanvas inkInsertionCanvas;
+        Border InkInsertionCanvasParent;
+        Button insertionButton;
 
-        public CanvasEditor() { }
+        public InsertionProcessor(InkCanvas mainInkCanvas, InkCanvas inkInsertionCanvas,
+            Border InkInsertionCanvasParent, Button insertionButton)
+        {
+            this.mainInkCanvas = mainInkCanvas;
+            this.inkInsertionCanvas = inkInsertionCanvas;
+            this.InkInsertionCanvasParent = InkInsertionCanvasParent;
+            this.insertionButton = insertionButton;
+        }
 
-        public void analyzeStrokes(InkAnalyzer inkAnalyzer, InkCanvas mainInkCanvas, InkCanvas inkInsertionCanvas, Border InkInsertionCanvasParent, Button insertionButton)
+        public void process(InkAnalyzer inkAnalyzer)
         {
             ContextNodeCollection nodeCollection = inkAnalyzer.FindLeafNodes();
-            for (int i = 0; i < nodeCollection.Count; i++)
+            foreach (ContextNode childNodes in nodeCollection)
             {
-                ContextNode childNodes = nodeCollection[i];
-                for (int j = 0; j < childNodes.Strokes.Count; j++)
+                foreach (Stroke stroke in childNodes.Strokes)
                 {
-                    Stroke stroke = childNodes.Strokes[j];
                     if (strokeIsCaret(stroke))
                     {
                         InkInsertionCanvasParent.Visibility = Visibility.Visible;
