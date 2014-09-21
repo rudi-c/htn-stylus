@@ -14,7 +14,7 @@ namespace InkAnalyzerTest
 {
     public class Headings
     {
-        public List<HeadingItem> headings;
+        public List<HeadingItem> headings = new List<HeadingItem>();
         public InkCanvas sidebar;
 
         public void invalidate()
