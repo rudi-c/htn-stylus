@@ -42,6 +42,10 @@ namespace InkAnalyzerTest
             inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
             SideBarTrigger.MouseUp += SideBarTrigger_MouseUp;
             SideBarTrigger.StylusButtonUp += SideBarTrigger_StylusButtonUp;
+
+            AnalysisHintNode hint = inkAnalyzer.CreateAnalysisHint();
+            hint.Factoid = "NONE";
+            hint.Location.MakeInfinite();
         }
 
         private void SideBarTrigger_StylusButtonUp(object sender, StylusButtonEventArgs e)
