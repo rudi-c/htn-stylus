@@ -14,7 +14,9 @@
             <ColumnDefinition Width="20*" />
         </Grid.ColumnDefinitions>
 
-        <InkCanvas Name="MainInkCanvas" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2" />
+        <InkCanvas Name="MainInkCanvas" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2"
+                   StylusLeave="MainInkCanvas_StylusLeave" 
+                   StylusOutOfRange="MainInkCanvas_StylusOutOfRange"  />
         <Rectangle Name="SidePanelRect" Fill="LightGray" Grid.Column="0" Grid.RowSpan="2" />
         <Border Name="SidePanel" Grid.Column="0" Grid.ColumnSpan="2" Grid.RowSpan="2" BorderBrush="Black" BorderThickness="2" Visibility="Collapsed">
             <InkCanvas Name="SideInkCanvas" />
@@ -23,7 +25,10 @@
 
         <StackPanel Grid.Column="3" Grid.Row="1">
             <Button Name="AnalyzeButton" Content="Analyze" Click="AnalyzeButton_Click" Height="50" />
-            <CheckBox Name="BoundingBoxCheckBox" Content="View Bounding Box" Margin="10" Unchecked="BoundingBoxCheckBox_Unchecked" Checked="BoundingBoxCheckBox_Checked" />
+            <CheckBox Name="BoundingBoxCheckBox" Content="View Bounding Box" Margin="10" 
+                      Unchecked="BoundingBoxCheckBox_Unchecked" Checked="BoundingBoxCheckBox_Checked" />
+            <CheckBox Name="ContinuousCheckBox" Content="Continuous Background Analysis" Margin="10" 
+                      Unchecked="ContinuousCheckBox_Unchecked" Checked="ContinuousCheckBox_Checked" />
         </StackPanel>
 
         <Canvas Name="OverlayCanvas" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0">

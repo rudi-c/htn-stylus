@@ -28,6 +28,8 @@ namespace InkAnalyzerTest
         GraphAnalyzer graphAnalyzer = new GraphAnalyzer();
         bool sidebarVisible = false;
 
+        bool continuousAnalyze = false;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -64,6 +66,7 @@ namespace InkAnalyzerTest
 
         void pipeline_PipelineComplete(object sender, EventArgs e)
         {
+            // We're completely rebuilding the tree view.
             AnalysisView.Items.Clear();
 
             TreeViewItem rootTreeItem = new TreeViewItem();
@@ -216,6 +219,16 @@ namespace InkAnalyzerTest
             GenerateBoundingBoxes();
         }
 
+        private void ContinuousCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            continuousAnalyze = false;
+        }
+
+        private void ContinuousCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            continuousAnalyze = true;
+        }
+
         private void GenerateBoundingBoxes(ContextNode node = null)
         {
             if (node == null)
@@ -274,5 +287,18 @@ namespace InkAnalyzerTest
             foreach (ContextNode child in node.SubNodes)
                 GenerateBoundingBoxes(child);
         }
+
+        private void MainInkCanvas_StylusLeave(object sender, StylusEventArgs e)
+        {
+            if (continuousAnalyze)
+                inkAnalyzer.BackgroundAnalyze();
+        }
+
+        private void MainInkCanvas_StylusOutOfRange(object sender, StylusEventArgs e)
+        {
+            if (continuousAnalyze)
+                inkAnalyzer.BackgroundAnalyze();
+        }
+
     }
 }
