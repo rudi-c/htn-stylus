@@ -48,13 +48,6 @@ namespace InkAnalyzerTest
             inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
             pipeline.PipelineComplete += pipeline_PipelineComplete;
             
-            SideInkCanvas.EditingMode = InkCanvasEditingMode.None;
-            MainInkCanvas.MouseMove += MainInkCanvas_MouseMove;
-            SidePanelRect.MouseMove += MainInkCanvas_MouseMove;
-            MainInkCanvas.StylusMove += MainInkCanvas_StylusMove;
-            SidePanelRect.StylusMove += MainInkCanvas_StylusMove;
-            SideInkCanvas.StylusUp += SideInkCanvas_StylusUp;
-
             AnalysisHintNode hint = inkAnalyzer.CreateAnalysisHint();
             hint.Factoid = "NONE";
             hint.Location.MakeInfinite();
@@ -299,6 +292,5 @@ namespace InkAnalyzerTest
             if (continuousAnalyze)
                 inkAnalyzer.BackgroundAnalyze();
         }
-
     }
 }

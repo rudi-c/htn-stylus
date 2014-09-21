@@ -15,11 +15,13 @@
         </Grid.ColumnDefinitions>
 
         <InkCanvas Name="MainInkCanvas" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2"
-                   StylusLeave="MainInkCanvas_StylusLeave" 
-                   StylusOutOfRange="MainInkCanvas_StylusOutOfRange"  />
-        <Rectangle Name="SidePanelRect" Fill="LightGray" Grid.Column="0" Grid.RowSpan="2" />
+                   MouseMove = "MainInkCanvas_MouseMove" StylusMove = "MainInkCanvas_StylusMove"
+                   StylusLeave="MainInkCanvas_StylusLeave" StylusOutOfRange="MainInkCanvas_StylusOutOfRange"  />
+        <Rectangle Name="SidePanelRect" Fill="LightGray" Grid.Column="0" Grid.RowSpan="2"
+                   MouseMove = "MainInkCanvas_MouseMove" StylusMove = "MainInkCanvas_StylusMove" />
+
         <Border Name="SidePanel" Grid.Column="0" Grid.ColumnSpan="2" Grid.RowSpan="2" BorderBrush="Black" BorderThickness="2" Visibility="Collapsed">
-            <InkCanvas Name="SideInkCanvas" />
+            <InkCanvas Name="SideInkCanvas" EditingMode="None" StylusUp="SideInkCanvas_StylusUp" />
         </Border>
         <TreeView Name="AnalysisView" Grid.Column="3" Grid.Row="0" SelectedItemChanged="AnalysisView_SelectedItemChanged" />
 
