@@ -17,7 +17,7 @@
                     <Button Name="InsertButton" Grid.Row="0" 
                         Content="&#xE10B;" Width="50" FontSize="20" FontFamily="Segoe UI Symbol" Foreground="#FF40B33D" />
                     <Button Name="CancelButton" Grid.Row="1" 
-                        Content="&#xE10A;" Width="50" FontSize="20" FontFamily="Segoe UI Symbol" Foreground="#FFF83535" Click="CancelButton_Click" />
+                        Content="&#xE10A;" Width="50" FontSize="20" FontFamily="Segoe UI Symbol" Foreground="#FFF83535" />
                 </Grid>
             </StackPanel>
         </Border>

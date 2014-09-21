@@ -91,6 +91,12 @@ namespace InkAnalyzerTest.Processors
             mainInkCanvas.Strokes.Remove(strokeToBeReplaced);
         }
 
+        public void cancel(InkCanvas mainInkCanvas, InkCanvas insertionCanvas)
+        {
+            insertionCanvas.Strokes.Clear();
+            mainInkCanvas.Strokes.Remove(strokeToBeReplaced);
+        }
+
         private bool strokeIsCaret(Stroke oldStrokes)
         {
             StylusPointCollection styluses = InkUtils.toPolyline(oldStrokes.StylusPoints);

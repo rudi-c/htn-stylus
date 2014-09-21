@@ -27,6 +27,11 @@ namespace InkAnalyzerTest
             get { return InsertButton;  }
         }
 
+        public Button TheCancelButton
+        {
+            get { return CancelButton;  }
+        }
+
         public InkCanvas InkCanvas
         {
             get { return InsertCanvas; }
@@ -35,11 +40,6 @@ namespace InkAnalyzerTest
         public InsertionBox(InsertionProcessor inserter)
         {
             InitializeComponent();
-        }
-
-        private void CancelButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.Visibility = Visibility.Collapsed;
         }
     }
 }
