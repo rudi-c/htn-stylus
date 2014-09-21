@@ -15,7 +15,6 @@ namespace InkAnalyzerTest.Processors
         List<InkProcessor> inkProcessors = new List<InkProcessor>();
         int processor = 0;
         bool processing = false;
-        bool queuedAnalysis = false;
 
         public PipelineAnalyzer(InkAnalyzer inkAnalyzer)
         {
@@ -50,8 +49,26 @@ namespace InkAnalyzerTest.Processors
                 {
                     InkProcessor proc = inkProcessors[processor];
                     proc.process(inkAnalyzer);
-                    inkAnalyzer.DirtyRegion.MakeInfinite();
                     processor++;
+                    inkAnalyzer.DirtyRegion.MakeInfinite();
+                    inkAnalyzer.BackgroundAnalyze();
+                    return;
+                }
+
+                if (adds.Count > 0 || removes.Count > 0)
+                {
+                    //Flush adds and removes
+                    while (adds.Count > 0)
+                    {
+                        Stroke stroke = adds.Dequeue();
+                        inkAnalyzer.AddStroke(stroke);
+                    }
+                    while (removes.Count > 0)
+                    {
+                        Stroke stroke = removes.Dequeue();
+                        inkAnalyzer.RemoveStroke(stroke);
+                    }
+                    inkAnalyzer.DirtyRegion.MakeInfinite();
                     inkAnalyzer.BackgroundAnalyze();
                     return;
                 }
@@ -63,6 +80,39 @@ namespace InkAnalyzerTest.Processors
 
                 processor = 0;
                 processing = false;
+            }
+        }
+
+        Queue<Stroke> adds = new Queue<Stroke>();
+        Queue<Stroke> removes = new Queue<Stroke>();
+
+        public void AddStroke(Stroke stroke)
+        {
+            lock (this)
+            {
+                if (processing)
+                {
+                    adds.Enqueue(stroke);
+                }
+                else
+                {
+                    inkAnalyzer.AddStroke(stroke);
+                }
+            }
+        }
+
+        public void RemoveStroke(Stroke stroke)
+        {
+            lock (this)
+            {
+                if (processing)
+                {
+                    removes.Enqueue(stroke);
+                }
+                else
+                {
+                    inkAnalyzer.RemoveStroke(stroke);
+                }
             }
         }
     }

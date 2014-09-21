@@ -27,7 +27,6 @@ namespace InkAnalyzerTest
         Headings headings;
         GraphAnalyzer graphAnalyzer = new GraphAnalyzer();
         InsertionProcessor inserter;
-        bool sidebarVisible = false;
 
         bool continuousAnalyze = false;
 
@@ -48,19 +47,19 @@ namespace InkAnalyzerTest
             headings = new Headings();
             headings.sidebar = SideInkCanvas;
 
-            AnalysisHintNode hint = inkAnalyzer.CreateAnalysisHint();
-            hint.Factoid = "NONE";
-            hint.Location.MakeInfinite();
+            //AnalysisHintNode hint = inkAnalyzer.CreateAnalysisHint();
+            //hint.Factoid = "NONE";
+            //hint.Location.MakeInfinite();
 
             MainInkCanvas.Strokes.StrokesChanged += Strokes_StrokesChanged;
             inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
             pipeline.PipelineComplete += pipeline_PipelineComplete;
 
-            inserter = new InsertionProcessor(MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent, InsertionButton);
-            pipeline.AddProcessor(inserter);
+            //inserter = new InsertionProcessor(MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent, InsertionButton);
+            //pipeline.AddProcessor(inserter);
             pipeline.AddProcessor(new StrikethroughProcessor(MainInkCanvas));
-            pipeline.AddProcessor(new NavigationProcessor(headings));
             pipeline.AddProcessor(new ReflowProcessor(MainInkCanvas));
+            pipeline.AddProcessor(new NavigationProcessor(headings));
         }
 
         void pipeline_PipelineComplete(object sender, EventArgs e)
@@ -150,7 +149,7 @@ namespace InkAnalyzerTest
         {
             InkInsertionCanvasParent.Visibility = Visibility.Hidden;
             InsertionButton.Visibility = Visibility.Hidden;
-            inserter.insertStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas);
+            //inserter.insertStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas);
         }
 
         // http://msdn.microsoft.com/en-us/library/system.windows.ink.contextnode(v=vs.90).aspx
