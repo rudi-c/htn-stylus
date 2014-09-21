@@ -161,7 +161,7 @@ namespace InkAnalyzerTest
             }
 
             double ymax = InkUtils.StrokeYMax(e.Added);
-            if (ymax > MainInkCanvas.ActualHeight - 100.0)
+            if (ymax > MainInkCanvas.ActualHeight - 300.0)
                 MainInkCanvas.Height = ymax + 800.0; 
 
             foreach (Stroke stroke in e.Removed)

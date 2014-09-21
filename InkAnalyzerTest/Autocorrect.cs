@@ -63,6 +63,8 @@ namespace InkAnalyzerTest
                 }
             }
 
+            spellchecker.Add("hackathon");
+
             // To display autocorrect stuff.
             suggestionsBox = new SuggestionsBox(this);
 
