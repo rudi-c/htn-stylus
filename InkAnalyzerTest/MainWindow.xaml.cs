@@ -52,11 +52,11 @@ namespace InkAnalyzerTest
 
         void InkAnalyzer_ResultsUpdated(object sender, ResultsUpdatedEventArgs e)
         {
-            canvasEditor.analyzeStrokeEvent(inkAnalyzer, MainInkCanvas, headings);
+            //canvasEditor.analyzeStrokeEvent(inkAnalyzer, MainInkCanvas, headings);
             canvasEditor.analyzeStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent, InsertionButton);
             //inkAnalyzer.Analyze();
 
-            AutocorrectNewWordNodes();
+            //AutocorrectNewWordNodes();
 
             // We're completely rebuilding the tree view.
             AnalysisView.Items.Clear();
@@ -118,6 +118,7 @@ namespace InkAnalyzerTest
         private void AnalyzeButton_Click(object sender, RoutedEventArgs e)
         {
             inkAnalyzer.BackgroundAnalyze();
+            //inkAnalyzer.Analyze();
             //canvasEditor.analyzeStrokeEvent(inkAnalyzer, MainInkCanvas, headings);
             //canvasEditor.analyzeStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent, InsertionButton);
             //inkAnalyzer.Analyze();
