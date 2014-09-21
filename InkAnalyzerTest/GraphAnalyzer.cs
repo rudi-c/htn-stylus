@@ -117,7 +117,7 @@ namespace InkAnalyzerTest
             }
             else
             {
-                StylusPoint spOrigin = InkUtils.sp(origin), spXEnd = InkUtils.sp(xEnd);
+                StylusPoint spOrigin = InkUtils.sp(origin), spXEnd = InkUtils.sp(xEnd), spYEnd = InkUtils.sp(yEnd);
                 // Support bars
                 if (col.Count == 4
                     // Vertical bars
@@ -137,6 +137,26 @@ namespace InkAnalyzerTest
                         new Point(x1, y),
                         new Point(x2, y),
                         new Point(x2, origin.Y)
+                    }));
+                }
+                else if (col.Count == 4
+                    // Horizontal bars
+                    && InkUtils.isHorizontal(col[0], col[1])
+                    //&& InkUtils.isVertical(col[1], col[2])
+                    && InkUtils.isHorizontal(col[2], col[3])
+                    && InkUtils.similar(Math.Sqrt(InkUtils.distSquared(col[0], col[1])),
+                    Math.Sqrt(InkUtils.distSquared(col[2], col[3])))
+                    && InkUtils.lineDistSquared(spOrigin, spYEnd, col[0]) < 400
+                    && InkUtils.lineDistSquared(spOrigin, spYEnd, col[3]) < 400)
+                {
+                    double y1 = (col[0].Y + col[1].Y) / 2;
+                    double y2 = (col[2].Y + col[3].Y) / 2;
+                    double x = (col[1].X + col[2].X) / 2;
+                    s.StylusPoints = InkUtils.xkcd(new StylusPointCollection(new Point[] {
+                        new Point(origin.X, y1),
+                        new Point(x, y1),
+                        new Point(x, y2),
+                        new Point(origin.X, y2)
                     }));
                 }
                 // Maybe it's inside the graph itself?
