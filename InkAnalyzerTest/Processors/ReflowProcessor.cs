@@ -17,10 +17,10 @@ namespace InkAnalyzerTest.Processors
 
         public void process(InkAnalyzer inkAnalyzer)
         {
-            reflowAll(inkAnalyzer, canvas, 25);
+            reflowAll(inkAnalyzer, canvas);
         }
 
-        private void reflowAll(InkAnalyzer inkAnalyzer, InkCanvas inkCanvas, double width)
+        private void reflowAll(InkAnalyzer inkAnalyzer, InkCanvas inkCanvas)
         {
             ContextNodeCollection parentList = inkAnalyzer.RootNode.SubNodes;
             foreach (ContextNode node in parentList)
@@ -32,19 +32,20 @@ namespace InkAnalyzerTest.Processors
                     {
                         if (paragraph is ParagraphNode)
                         {
-                            reflowParagraph(paragraph as ParagraphNode, inkAnalyzer, inkCanvas, width);
+                            reflowParagraph(paragraph as ParagraphNode, inkAnalyzer, inkCanvas);
                         }
                     }
                 }
             }
         }
 
-        private void reflowParagraph(ParagraphNode node, InkAnalyzer inkAnalyzer, InkCanvas inkCanvas, double spacing)
+        private void reflowParagraph(ParagraphNode node, InkAnalyzer inkAnalyzer, InkCanvas inkCanvas)
         {
             ContextNodeCollection lines = node.SubNodes;
             Rect bounds = node.Strokes.GetBounds();
             List<InkWordNode> resultWords = new List<InkWordNode>();
             double lineHeight = 0;
+            double spacing = 30;
             //Collect all strokes
             foreach (ContextNode line in lines)
             {
