@@ -96,106 +96,20 @@ namespace InkAnalyzerTest.Processors
         {
             StylusPointCollection styluses = InkUtils.toPolyline(oldStrokes.StylusPoints);
 
-            if (styluses.Count >= 5)
+            if (styluses.Count == 5)
             {
-                bool hasGoodFirst = false;
-                bool hasGoodSecond = false;
-                bool hasGoodThird = false;
-                bool hasGoodFourth = false;
-                StylusPoint point0 = styluses.First();
-                StylusPoint point1 = styluses[styluses.Count / 4];
-                StylusPoint point2 = styluses[styluses.Count / 2];
-                StylusPoint point3 = styluses[styluses.Count * 3 / 4];
-                StylusPoint point4 = styluses.Last();
-                double firstOffset = 0;
-                double secondOffset = 0;
-                double thirdOffset = 0;
-                double fourthOffset = 0;
-                double firstExpectedSlope = 0;
-                double secondExpectedSlope = 0;
-                if (point0.X < point1.X)
-                {
-                    firstExpectedSlope = (point1.Y - point0.Y) / (point1.X - point0.X);
-                    if (firstExpectedSlope < -0.5 && firstExpectedSlope > -4)
-                    {
-                        double sum = 0;
-                        for (int i = 0; i < styluses.Count / 4; i++)
-                        {
-                            StylusPoint point = styluses[i];
-                            double expectedY = point0.Y + (point.X - point0.X) * firstExpectedSlope;
-                            sum += Math.Pow(point.Y - expectedY, 2);
-                        }
-                        firstOffset = sum / styluses.Count();
-                        if (firstOffset < 50)
-                        {
-                            hasGoodFirst = true;
-                        }
-                    }
-                }
-                if (point1.X < point2.X)
-                {
-                    secondExpectedSlope = (point2.Y - point1.Y) / (point2.X - point1.X);
-                    if (secondExpectedSlope > 0.5 && secondExpectedSlope < 4)
-                    {
-                        double sum = 0;
-                        for (int i = styluses.Count / 4; i < styluses.Count / 2; i++)
-                        {
-                            StylusPoint point = styluses[i];
-                            double expectedY = point1.Y + (point.X - point1.X) * secondExpectedSlope;
-                            sum += Math.Pow(point.Y - expectedY, 2);
-                        }
-                        secondOffset = sum / styluses.Count();
+                double distance1 = (Math.Sqrt(InkUtils.distSquared(styluses[0], styluses[4])));
+                double distance2 = (Math.Sqrt(InkUtils.distSquared(styluses[1], styluses[3])));
+                bool closeFirst =  distance1 < 50;
+                bool closeSecond = distance2 < 50;
 
-                        if (secondOffset < 50)
-                        {
-                            hasGoodSecond = true;
-                        }
-                    }
-                }
-                if (point3.X < point2.X)
-                {
-                    double retraceExpectedSlope =  (point3.Y - point2.Y) / (point3.X - point2.X);
-                    if (retraceExpectedSlope > 0.5 && retraceExpectedSlope < 4 && Math.Abs(retraceExpectedSlope - secondExpectedSlope) > 0.1)
-                    {
-                        double sum = 0;
-                        for (int i = styluses.Count / 2; i < 3 * styluses.Count / 4; i++)
-                        {
-                            StylusPoint point = styluses[i];
-                            double expectedY = point2.Y + (point.X - point2.X) * secondExpectedSlope;
-                            sum += Math.Pow(point.Y - expectedY, 2);
-                        }
-                        thirdOffset = sum / styluses.Count();
+                double offset = (styluses[0].Y - styluses[1].Y) / (styluses[0].X - styluses[1].X);
+                double levelOffset = (styluses[0].Y - styluses[2].Y);
+                bool isHigh = Math.Abs(offset) > 1.5;
+                bool level = Math.Abs(levelOffset) < 50;
 
-                        if (thirdOffset < 50)
-                        {
-                            hasGoodThird = true;
-                        }
-                    }
-                }
-                if (point4.X < point3.X)
-                {
-                    double retraceExpectedSlope = (point4.Y - point3.Y) / (point4.X - point3.X);
-                    if (firstExpectedSlope < -0.5 && firstExpectedSlope > -4 && Math.Abs(retraceExpectedSlope - firstExpectedSlope) > 0.1)
-                    {
-                        double sum = 0;
-                        for (int i = 3 * styluses.Count / 4; i < styluses.Count; i++)
-                        {
-                            StylusPoint point = styluses[i];
-                            double expectedY = point3.Y + (point.X - point3.X) * firstExpectedSlope;
-                            sum += Math.Pow(point.Y - expectedY, 2);
-                        }
-                        fourthOffset = sum / styluses.Count();
-                        if (fourthOffset < 50)
-                        {
-                            hasGoodFourth = true;
-                        }
-                    }
-                }
-                //if (hasGoodFirst && hasGoodSecond && hasGoodThird && hasGoodFourth)
-               // {
-                    Debug.WriteLine(firstOffset + " " + secondOffset + " "  + thirdOffset + " " + fourthOffset);
-                //}
-                return hasGoodFirst && hasGoodSecond && hasGoodThird && hasGoodFourth;
+                Debug.Print(distance1 + " " + distance2 + " " + offset + " " + levelOffset);
+                return closeFirst && closeSecond && isHigh && level;
             }
             return false;
         }
