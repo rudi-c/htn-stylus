@@ -146,6 +146,7 @@ namespace InkAnalyzerTest
 
             mainWindow.MainInkCanvas.Strokes.Remove(incorrectWord.Strokes);
             mainWindow.MainInkCanvas.Strokes.Add(newStrokes);
+            mainWindow.pipeline.QueueAnalysis();
 
             this.Visibility = Visibility.Collapsed;
         }

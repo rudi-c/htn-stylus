@@ -24,7 +24,7 @@ namespace InkAnalyzerTest
     public partial class MainWindow : Window
     {
         InkAnalyzer inkAnalyzer;
-        PipelineAnalyzer pipeline;
+        public PipelineAnalyzer pipeline;
         Headings headings;
         GraphAnalyzer graphAnalyzer = new GraphAnalyzer();
         InsertionProcessor inserter;
@@ -59,7 +59,7 @@ namespace InkAnalyzerTest
             inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
             pipeline.PipelineComplete += pipeline_PipelineComplete;
 
-            DisableDictionary();
+            //DisableDictionary();
 
             inserter = new InsertionProcessor(MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent, InsertionButton);
             pipeline.AddProcessor(inserter);
