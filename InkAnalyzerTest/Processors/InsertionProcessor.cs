@@ -15,17 +15,13 @@ namespace InkAnalyzerTest.Processors
     {
         Stroke strokeToBeReplaced;
         InkCanvas mainInkCanvas;
-        InkCanvas inkInsertionCanvas;
-        Border InkInsertionCanvasParent;
-        Button insertionButton;
 
-        public InsertionProcessor(InkCanvas mainInkCanvas, InkCanvas inkInsertionCanvas,
-            Border InkInsertionCanvasParent, Button insertionButton)
+        InsertionBox insertionBox;
+
+        public InsertionProcessor(InkCanvas mainInkCanvas, InsertionBox insertionBox)
         {
             this.mainInkCanvas = mainInkCanvas;
-            this.inkInsertionCanvas = inkInsertionCanvas;
-            this.InkInsertionCanvasParent = InkInsertionCanvasParent;
-            this.insertionButton = insertionButton;
+            this.insertionBox = insertionBox;
         }
 
         public void process(InkAnalyzer inkAnalyzer)
@@ -37,12 +33,9 @@ namespace InkAnalyzerTest.Processors
                 {
                     if (strokeIsCaret(stroke))
                     {
-                        InkInsertionCanvasParent.Visibility = Visibility.Visible;
-                        insertionButton.Visibility = Visibility.Visible;
-                        Canvas.SetLeft(InkInsertionCanvasParent, stroke.StylusPoints[0].X - 140);
-                        Canvas.SetTop(InkInsertionCanvasParent, stroke.StylusPoints[1].Y);
-                        Canvas.SetLeft(insertionButton, stroke.StylusPoints[0].X + 20);
-                        Canvas.SetTop(insertionButton, stroke.StylusPoints[1].Y + 120);
+                        insertionBox.Visibility = Visibility.Visible;
+                        Canvas.SetLeft(insertionBox, stroke.StylusPoints[0].X - 140);
+                        Canvas.SetTop(insertionBox, stroke.StylusPoints[1].Y);
                         strokeToBeReplaced = stroke;
                     }
                 }
