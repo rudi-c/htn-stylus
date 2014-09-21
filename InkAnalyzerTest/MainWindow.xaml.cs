@@ -57,6 +57,7 @@ namespace InkAnalyzerTest
             //Initialize headings
             headings = new Headings();
             headings.sidebar = SideInkCanvas;
+            headings.scrollViewerContainer = MainScrollView;
 
             MainInkCanvas.Strokes.StrokesChanged += Strokes_StrokesChanged;
             inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;

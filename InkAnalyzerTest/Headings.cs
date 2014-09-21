@@ -17,6 +17,9 @@ namespace InkAnalyzerTest
         public List<HeadingItem> headings = new List<HeadingItem>();
         public InkCanvas sidebar;
 
+        // The scroll viewer that contains the stuff the header points to.
+        public ScrollViewer scrollViewerContainer;
+
         public void invalidate()
         {
             sidebar.Strokes.Clear();
@@ -54,7 +57,9 @@ namespace InkAnalyzerTest
                     {
                         line.DrawingAttributes.Color = Colors.CornflowerBlue;
                     }
-                }
+
+                    scrollViewerContainer.ScrollToVerticalOffset(heading.lines[0].StylusPoints[0].Y);
+                } 
             }
         }
     }
