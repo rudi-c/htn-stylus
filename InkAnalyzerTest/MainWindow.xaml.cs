@@ -28,7 +28,7 @@ namespace InkAnalyzerTest
         InkAnalyzer inkAnalyzer;
         public PipelineAnalyzer pipeline;
         Headings headings;
-        GraphAnalyzer graphAnalyzer = new GraphAnalyzer();
+        GraphAnalyzer graphAnalyzer;
         InsertionProcessor inserter;
         InsertionBox insertionBox;
 
@@ -37,6 +37,7 @@ namespace InkAnalyzerTest
 
         public MainWindow()
         {
+            graphAnalyzer = new GraphAnalyzer(this);
             InitializeComponent();
 
             AutocorrectInit();

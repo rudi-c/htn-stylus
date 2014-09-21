@@ -12,12 +12,19 @@ namespace InkAnalyzerTest
 
     public abstract class Graph
     {
+        public interface IDelegate
+        {
+            void addStroke(Graph g, Stroke s);
+        }
+
+        public IDelegate del;
         public Stroke box;
         protected Rect bounds;
         protected InkAnalyzer analyzer;
 
-        public Graph(Stroke b)
+        public Graph(IDelegate _del, Stroke b)
         {
+            del = _del;
             box = b;
             bounds = box.GetBounds();
             box.StylusPoints = InkUtils.xkcd(InkUtils.box(bounds));
@@ -40,7 +47,7 @@ namespace InkAnalyzerTest
         Stroke xAxis, yAxis;
         Point origin, xEnd, yEnd;
         StrokeCollection curves;
-        public XYGraph(Stroke b) : base(b) {
+        public XYGraph(IDelegate del, Stroke b) : base(del, b) {
             curves = new StrokeCollection();
         }
         public override bool takeStroke(Stroke s)
@@ -142,6 +149,7 @@ namespace InkAnalyzerTest
                         new Point(x2, y),
                         new Point(x2, origin.Y)
                     }));
+                    fillBar(x1, origin.Y, x2, y);
                 }
                 else if (col.Count == 4
                     // Horizontal bars
@@ -162,6 +170,7 @@ namespace InkAnalyzerTest
                         new Point(x, y2),
                         new Point(origin.X, y2)
                     }));
+                    fillBar(origin.X, y1, x, y2);
                 }
                 // Maybe it's inside the graph itself?
                 else if (s.HitTest(new Rect(xEnd, yEnd), 80))
@@ -216,15 +225,66 @@ namespace InkAnalyzerTest
                 curves.Remove(s);
             }
         }
+        private void fillBar(double _x1, double _y1, double _x2, double _y2)
+        {
+            const double dist = 14, stdev = 4, fillGap = 0.05;
+            double x1 = Math.Min(_x1, _x2),
+                x2 = Math.Max(_x1, _x2),
+                y1 = Math.Min(_y1, _y2),
+                y2 = Math.Max(_y1, _y2);
+            double d = x1 + y1 + dist;
+            StylusPointCollection r = new StylusPointCollection();
+            //r.Add(new StylusPoint(x1, y1));
+            bool side = false;
+            while (d < x2 + y2 - dist)
+            {
+                if (side = !side)
+                {
+                    double x1_ = x1 + (x2 - x1) * Math.Abs(InkUtils.stdNorm() * fillGap);
+                    double y2_ = y2 - (y2 - y1) * Math.Abs(InkUtils.stdNorm() * fillGap);
+                    if (d - x1_ < y2_)
+                    {
+                        r.Add(new StylusPoint(x1_, d - x1_));
+                    }
+                    else
+                    {
+                        r.Add(new StylusPoint(d - y2_, y2_));
+                    }
+                }
+                else
+                {
+                    double x2_ = x2 - (x2 - x1) * Math.Abs(InkUtils.stdNorm() * fillGap);
+                    double y1_ = y1 + (y2 - y1) * Math.Abs(InkUtils.stdNorm() * fillGap);
+                    if (d - x2_ > y1_)
+                    {
+                        r.Add(new StylusPoint(x2_, d - x2_));
+                    }
+                    else
+                    {
+                        r.Add(new StylusPoint(d - y1_, y1_));
+                    }
+                    d += Math.Abs(InkUtils.stdNorm() * stdev + dist);
+                }
+            }
+            Stroke s = new Stroke(InkUtils.xkcd(r));
+            addStroke(s);
+        }
+
+        private void addStroke(Stroke s)
+        {
+            del.addStroke(this, s);
+        }
     }
 
-    public class GraphAnalyzer
+    public class GraphAnalyzer : Graph.IDelegate
     {
+        MainWindow mainWindow;
         InkAnalyzer analyzer;
         HashSet<Graph> graphs;
         Dictionary<Stroke, Graph> strokes;
-        public GraphAnalyzer()
+        public GraphAnalyzer(MainWindow m)
         {
+            mainWindow = m;
             analyzer = new InkAnalyzer();
             graphs = new HashSet<Graph>();
             strokes = new Dictionary<Stroke, Graph>();
@@ -237,6 +297,11 @@ namespace InkAnalyzerTest
         /// <returns>true if the stroke was recognized as belonging to a graph (and so should be excluded from InkAnalyzer)</returns>
         public bool newStroke(Stroke stroke)
         {
+            if (strokes.ContainsKey(stroke))
+            {
+                // already have it!
+                return true;
+            }
             foreach (Graph g in graphs)
             {
                 if (g.containsStroke(stroke) && g.takeStroke(stroke))
@@ -256,7 +321,7 @@ namespace InkAnalyzerTest
             {
                 if (ctxNode is InkDrawingNode && (ctxNode as InkDrawingNode).GetShapeName() == "Rectangle")
                 {
-                    Graph g = new XYGraph(stroke);
+                    Graph g = new XYGraph(this, stroke);
                     graphs.Add(g);
                     strokes.Add(stroke, g);
                     analyzer.RemoveStroke(copy);
@@ -284,6 +349,12 @@ namespace InkAnalyzerTest
             {
                 g.remove(stroke);
             }
+        }
+
+        public void addStroke(Graph g, Stroke s)
+        {
+            strokes.Add(s, g);
+            mainWindow.MainInkCanvas.Strokes.Add(s);
         }
     }
 
