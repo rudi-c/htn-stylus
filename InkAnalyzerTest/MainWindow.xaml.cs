@@ -110,7 +110,7 @@ namespace InkAnalyzerTest
         {
             InkInsertionCanvasParent.Visibility = Visibility.Hidden;
             InsertionButton.Visibility = Visibility.Hidden;
-            canvasEditor.removeSavedCaretStroke(MainInkCanvas);
+            canvasEditor.insertStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas);
         }
 
         // http://msdn.microsoft.com/en-us/library/system.windows.ink.contextnode(v=vs.90).aspx

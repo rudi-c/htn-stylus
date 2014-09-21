@@ -318,11 +318,28 @@ namespace InkAnalyzerTest
             }
         }
 
-        public void removeSavedCaretStroke(InkCanvas mainInkCanvas) {
-            if (strokeToBeReplaced != null)
+        public void insertStrokes(InkAnalyzer analyzer, InkCanvas mainInkCanvas, InkCanvas insertionCanvas)
+        {
+            double bestY = 10000;
+            foreach (ContextNode node in analyzer.FindLeafNodes())
             {
-                mainInkCanvas.Strokes.Remove(strokeToBeReplaced);
+                double y1 = strokeToBeReplaced.GetBounds().Y;
+                double y2 = node.Strokes.GetBounds().Y;
+                if (y2 - y1 > 0 && y2 - y1 < bestY - y1)
+                {
+                    bestY = y2;
+                }
             }
+            mainInkCanvas.Strokes.Add(insertionCanvas.Strokes.Clone());
+            foreach (Stroke stroke in insertionCanvas.Strokes)
+            {
+                Matrix inkTransform = new Matrix();
+                double bestX = strokeToBeReplaced.GetBounds().X;
+                inkTransform.Translate(bestX, bestY);
+                stroke.Transform(inkTransform, false);
+            }
+            insertionCanvas.Strokes.Clear();
+            mainInkCanvas.Strokes.Remove(strokeToBeReplaced);
         }
 
         private bool strokeIsCaret(Stroke stroke)
@@ -349,7 +366,7 @@ namespace InkAnalyzerTest
                             sum += Math.Pow(point.Y - expectedY, 2);
                         }
                         firstOffset = sum / stroke.StylusPoints.Count();
-                        if (firstOffset < 120)
+                        if (firstOffset < 50)
                         {
                             hasGoodFirst = true;
                         }
@@ -369,7 +386,7 @@ namespace InkAnalyzerTest
                         }
                         secondOffset = sum / stroke.StylusPoints.Count();
 
-                        if (secondOffset < 120)
+                        if (secondOffset < 50)
                         {
                             hasGoodSecond = true;
                         }
