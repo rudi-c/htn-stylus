@@ -36,12 +36,43 @@ namespace InkAnalyzerTest
         private void InkWindow_Loaded(object sender, RoutedEventArgs e)
         {
             MainInkCanvas.Strokes.StrokesChanged += Strokes_StrokesChanged;
-            inkAnalyzer = new InkAnalyzer();
+            inkAnalyzer = new InkAnalyzer(this.Dispatcher);
             headings.sidebar = SideInkCanvas;
 
+            inkAnalyzer.ResultsUpdated += InkAnalyzer_ResultsUpdated;
+            inkAnalyzer.IntermediateResultsUpdated += InkAnalyzer_IntermediateResultsUpdated;
             inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
             SideBarTrigger.MouseUp += SideBarTrigger_MouseUp;
             SideBarTrigger.StylusButtonUp += SideBarTrigger_StylusButtonUp;
+
+            AnalysisHintNode hint = inkAnalyzer.CreateAnalysisHint();
+            hint.Factoid = "NONE";
+            hint.Location.MakeInfinite();
+        }
+
+        void InkAnalyzer_ResultsUpdated(object sender, ResultsUpdatedEventArgs e)
+        {
+            canvasEditor.analyzeStrokeEvent(inkAnalyzer, MainInkCanvas, headings);
+            canvasEditor.analyzeStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent, InsertionButton);
+            //inkAnalyzer.Analyze();
+
+            AutocorrectNewWordNodes();
+
+            // We're completely rebuilding the tree view.
+            AnalysisView.Items.Clear();
+
+            TreeViewItem rootTreeItem = new TreeViewItem();
+            rootTreeItem.Tag = inkAnalyzer.RootNode;
+            rootTreeItem.Header = inkAnalyzer.RootNode.ToString();
+
+            AnalysisView.Items.Add(rootTreeItem);
+            BuildTree(inkAnalyzer.RootNode, rootTreeItem);
+
+            GenerateBoundingBoxes();
+        }
+
+        void InkAnalyzer_IntermediateResultsUpdated(object sender, ResultsUpdatedEventArgs e)
+        {
         }
 
         private void SideBarTrigger_StylusButtonUp(object sender, StylusButtonEventArgs e)
@@ -86,24 +117,24 @@ namespace InkAnalyzerTest
 
         private void AnalyzeButton_Click(object sender, RoutedEventArgs e)
         {
-            inkAnalyzer.Analyze();
-            canvasEditor.analyzeStrokeEvent(inkAnalyzer, MainInkCanvas, headings);
-            canvasEditor.analyzeStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent, InsertionButton);
-            inkAnalyzer.Analyze();
+            inkAnalyzer.BackgroundAnalyze();
+            //canvasEditor.analyzeStrokeEvent(inkAnalyzer, MainInkCanvas, headings);
+            //canvasEditor.analyzeStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent, InsertionButton);
+            //inkAnalyzer.Analyze();
 
-            AutocorrectNewWordNodes();
+            //AutocorrectNewWordNodes();
 
-            // We're completely rebuilding the tree view.
-            AnalysisView.Items.Clear();
+            //// We're completely rebuilding the tree view.
+            //AnalysisView.Items.Clear();
 
-            TreeViewItem rootTreeItem = new TreeViewItem();
-            rootTreeItem.Tag = inkAnalyzer.RootNode;
-            rootTreeItem.Header = inkAnalyzer.RootNode.ToString();
+            //TreeViewItem rootTreeItem = new TreeViewItem();
+            //rootTreeItem.Tag = inkAnalyzer.RootNode;
+            //rootTreeItem.Header = inkAnalyzer.RootNode.ToString();
 
-            AnalysisView.Items.Add(rootTreeItem);
-            BuildTree(inkAnalyzer.RootNode, rootTreeItem);
+            //AnalysisView.Items.Add(rootTreeItem);
+            //BuildTree(inkAnalyzer.RootNode, rootTreeItem);
 
-            GenerateBoundingBoxes();
+            //GenerateBoundingBoxes();
         }
 
         private void InsertionButton_Click(object sender, RoutedEventArgs e)

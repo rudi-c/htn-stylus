@@ -119,27 +119,25 @@ namespace InkAnalyzerTest
             {
                 StylusPoint spOrigin = InkUtils.sp(origin), spXEnd = InkUtils.sp(xEnd);
                 // Support bars
-                if (col.Count == 4)
-                {
+                if (col.Count == 4
                     // Vertical bars
-                    if (InkUtils.isVertical(col[0], col[1])
-                        //&& InkUtils.isHorizontal(col[1], col[2])
-                        && InkUtils.isVertical(col[2], col[3])
-                        && InkUtils.similar(Math.Sqrt(InkUtils.distSquared(col[0], col[1])),
-                        Math.Sqrt(InkUtils.distSquared(col[2], col[3])))
-                        && InkUtils.lineDistSquared(spOrigin, spXEnd, col[0]) < 100
-                        && InkUtils.lineDistSquared(spOrigin, spXEnd, col[3]) < 100)
-                    {
-                        double x1 = (col[0].X + col[1].X) / 2;
-                        double x2 = (col[2].X + col[3].X) / 2;
-                        double y = (col[1].Y + col[2].Y) / 2;
-                        s.StylusPoints = InkUtils.xkcd(new StylusPointCollection(new Point[] {
-                            new Point(x1, origin.Y),
-                            new Point(x1, y),
-                            new Point(x2, y),
-                            new Point(x2, origin.Y)
-                        }));
-                    }
+                    && InkUtils.isVertical(col[0], col[1])
+                    //&& InkUtils.isHorizontal(col[1], col[2])
+                    && InkUtils.isVertical(col[2], col[3])
+                    && InkUtils.similar(Math.Sqrt(InkUtils.distSquared(col[0], col[1])),
+                    Math.Sqrt(InkUtils.distSquared(col[2], col[3])))
+                    && InkUtils.lineDistSquared(spOrigin, spXEnd, col[0]) < 400
+                    && InkUtils.lineDistSquared(spOrigin, spXEnd, col[3]) < 400)
+                {
+                    double x1 = (col[0].X + col[1].X) / 2;
+                    double x2 = (col[2].X + col[3].X) / 2;
+                    double y = (col[1].Y + col[2].Y) / 2;
+                    s.StylusPoints = InkUtils.xkcd(new StylusPointCollection(new Point[] {
+                        new Point(x1, origin.Y),
+                        new Point(x1, y),
+                        new Point(x2, y),
+                        new Point(x2, origin.Y)
+                    }));
                 }
                 // Maybe it's inside the graph itself?
                 else if (s.HitTest(new Rect(xEnd, yEnd), 80))
