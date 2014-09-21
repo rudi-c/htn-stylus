@@ -1,6 +1,7 @@
 ﻿using InkAnalyzerTest.Processors;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -54,6 +55,7 @@ namespace InkAnalyzerTest
             headings = new Headings();
             headings.sidebar = SideInkCanvas;
 
+            MainInkCanvas.Strokes.StrokesChanged += Strokes_StrokesChanged;
             inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
             pipeline.PipelineComplete += pipeline_PipelineComplete;
 
