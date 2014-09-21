@@ -57,7 +57,12 @@ namespace InkAnalyzerTest.Processors
                     }
                     Stroke horizontalLine = horizontalLines[j];
                     Rect horizontalLineBounds = horizontalLine.GetBounds();
-                    if (strikethroughBounds.IntersectsWith(horizontalLineBounds))
+                    double sideBuffer = (1 - Constants.LINE_WORD_OVERLAPSE_RATIO) / 2;
+                    double strikethroughBoundLeft = strikethroughBounds.X + strikethroughBounds.Width * sideBuffer;
+                    double strikethroughBoundRight = strikethroughBounds.X + strikethroughBounds.Width * (1 - sideBuffer);
+                    if (strikethroughBounds.IntersectsWith(horizontalLineBounds) &&
+                        strikethroughBoundLeft > horizontalLineBounds.X &&
+                        strikethroughBoundRight < horizontalLineBounds.X + horizontalLineBounds.Width)
                     {
                         //Delete strikethrough
                         deletedNodes.Add(node);
@@ -74,8 +79,9 @@ namespace InkAnalyzerTest.Processors
             }
 
             //Final step to apply the gestures, commit changes
-            foreach (ContextNode node in deletedNodes)
+            for (int i = deletedNodes.Count - 1; i >= 0; i--)
             {
+                ContextNode node = deletedNodes[i];
                 try
                 {
                     Rect bounds = node.Strokes.GetBounds();
@@ -91,7 +97,8 @@ namespace InkAnalyzerTest.Processors
                         }
                     }
                     double dx = nodeX - closestX;
-                    foreach(ContextNode sibling in parent.SubNodes) {
+                    foreach (ContextNode sibling in parent.SubNodes)
+                    {
                         //Nodes right side of current
                         if (sibling.Strokes.GetBounds().X > nodeX)
                         {

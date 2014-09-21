@@ -77,6 +77,7 @@ namespace InkAnalyzerTest.Processors
                     resultLines.Add(new List<InkWordNode>());
                     lineMaxBaseline.Add(0);
                 }
+                x += spacing + wordBound.Width;
                 PointCollection baseline = word.GetBaseline();
                 double baselineFromTop = baseline[0].Y - wordBound.Y;
                 resultLines[resultLines.Count - 1].Add(word);

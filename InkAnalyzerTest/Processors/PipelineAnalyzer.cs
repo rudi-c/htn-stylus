@@ -185,7 +185,7 @@ namespace InkAnalyzerTest.Processors
         {
             double dy = other.point.Y - point.Y - paragraph.Strokes.GetBounds().Height;
             double dx = Math.Abs(other.point.X - point.X);
-            return dx < 30 && dy < 40;
+            return dx < Constants.MERGE_PARAGRAPH_X && dy < Constants.MERGE_PARAGRAPH_Y;
         }
     }
 }

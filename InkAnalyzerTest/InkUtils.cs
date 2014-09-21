@@ -314,7 +314,7 @@ namespace InkAnalyzerTest
                     Rect bounds = word.Strokes.GetBounds();
                     foreach (Stroke stroke in word.Strokes)
                     {
-                        if (stroke.GetBounds().Width / bounds.Width >= 0.9d)
+                        if (stroke.GetBounds().Width / bounds.Width >= Constants.LINE_WORD_OVERLAPSE_RATIO)
                         {
                             horizontalLines.Add(stroke);
                         }
