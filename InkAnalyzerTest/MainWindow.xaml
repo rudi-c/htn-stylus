@@ -21,6 +21,7 @@
                       HorizontalScrollBarVisibility="Auto">
             <Grid>
                 <InkCanvas Name="MainInkCanvas" 
+                           StylusEnter="MainInkCanvas_StylusEnter"
                            MouseMove = "MainInkCanvas_MouseMove" StylusMove = "MainInkCanvas_StylusMove" 
                            StylusLeave="MainInkCanvas_StylusLeave" StylusOutOfRange="MainInkCanvas_StylusOutOfRange"  />
 

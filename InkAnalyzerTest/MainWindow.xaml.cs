@@ -33,6 +33,7 @@ namespace InkAnalyzerTest
         InsertionBox insertionBox;
 
         bool continuousAnalyze = true;
+        bool didFirstInvalidate = false;
 
         public MainWindow()
         {
@@ -108,6 +109,17 @@ namespace InkAnalyzerTest
             else
             {
                 hideSidebar();
+            }
+        }
+
+        void MainInkCanvas_StylusEnter(object sender, StylusEventArgs e)
+        {
+            // This is needed to fix a bug where the first rending of the first
+            // stroke is off horizontally for some reason.
+            if (!didFirstInvalidate)
+            {
+                MainInkCanvas.InvalidateVisual();
+                didFirstInvalidate = true;
             }
         }
 
