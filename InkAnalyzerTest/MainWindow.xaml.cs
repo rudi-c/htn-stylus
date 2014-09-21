@@ -22,10 +22,11 @@ namespace InkAnalyzerTest
     /// </summary>
     public partial class MainWindow : Window
     {
-        PipelineAnalyzer pipeline ;
         InkAnalyzer inkAnalyzer;
-        Headings headings = new Headings();
+        PipelineAnalyzer pipeline;
+        Headings headings;
         GraphAnalyzer graphAnalyzer = new GraphAnalyzer();
+        InsertionProcessor inserter;
         bool sidebarVisible = false;
 
         bool continuousAnalyze = false;
@@ -39,19 +40,24 @@ namespace InkAnalyzerTest
 
         private void InkWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            MainInkCanvas.Strokes.StrokesChanged += Strokes_StrokesChanged;
+            //Initialize analyzer and pipeline
             inkAnalyzer = new InkAnalyzer(this.Dispatcher);
             pipeline = new PipelineAnalyzer(inkAnalyzer);
+
+            //Initialize headings
+            headings = new Headings();
             headings.sidebar = SideInkCanvas;
 
-            inkAnalyzer.IntermediateResultsUpdated += InkAnalyzer_IntermediateResultsUpdated;
-            inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
-            pipeline.PipelineComplete += pipeline_PipelineComplete;
-            
             AnalysisHintNode hint = inkAnalyzer.CreateAnalysisHint();
             hint.Factoid = "NONE";
             hint.Location.MakeInfinite();
 
+            MainInkCanvas.Strokes.StrokesChanged += Strokes_StrokesChanged;
+            inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
+            pipeline.PipelineComplete += pipeline_PipelineComplete;
+
+            inserter = new InsertionProcessor(MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent, InsertionButton);
+            pipeline.AddProcessor(inserter);
             pipeline.AddProcessor(new StrikethroughProcessor(MainInkCanvas));
             pipeline.AddProcessor(new NavigationProcessor(headings));
             pipeline.AddProcessor(new ReflowProcessor(MainInkCanvas));
@@ -70,10 +76,6 @@ namespace InkAnalyzerTest
             BuildTree(inkAnalyzer.RootNode, rootTreeItem);
 
             GenerateBoundingBoxes();
-        }
-
-        void InkAnalyzer_IntermediateResultsUpdated(object sender, ResultsUpdatedEventArgs e)
-        {
         }
 
         void SideInkCanvas_StylusUp(object sender, StylusEventArgs e)
@@ -117,7 +119,7 @@ namespace InkAnalyzerTest
 
         void Strokes_StrokesChanged(object sender, StrokeCollectionChangedEventArgs e)
         {
-            foreach(Stroke stroke in e.Added)
+            foreach (Stroke stroke in e.Added)
             {
                 if (!graphAnalyzer.newStroke(stroke))
                 {
@@ -127,7 +129,7 @@ namespace InkAnalyzerTest
                 AutocorrectHandleAddStroke(stroke);
             }
 
-            foreach(Stroke stroke in e.Removed)
+            foreach (Stroke stroke in e.Removed)
             {
                 graphAnalyzer.removeStroke(stroke);
                 // If we erase a word and try to replace it with autocorrect
@@ -148,7 +150,7 @@ namespace InkAnalyzerTest
         {
             InkInsertionCanvasParent.Visibility = Visibility.Hidden;
             InsertionButton.Visibility = Visibility.Hidden;
-            //canvasEditor.insertStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas);
+            inserter.insertStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas);
         }
 
         // http://msdn.microsoft.com/en-us/library/system.windows.ink.contextnode(v=vs.90).aspx
@@ -156,23 +158,23 @@ namespace InkAnalyzerTest
         {
             parentTNode.IsExpanded = true;
 
-            foreach(ContextNode cNode in parentCNode.SubNodes)
+            foreach (ContextNode cNode in parentCNode.SubNodes)
             {
                 // Create new tree node corresponding to context node.
                 TreeViewItem tNode = new TreeViewItem();
                 tNode.Tag = cNode;
                 tNode.Header = cNode.ToString();
 
-                if(cNode is InkWordNode)
+                if (cNode is InkWordNode)
                 {
                     tNode.Header += ": " + (cNode as InkWordNode).GetRecognizedString();
                 }
-                else if(cNode is InkDrawingNode)
+                else if (cNode is InkDrawingNode)
                 {
                     tNode.Header += ": " + (cNode as InkDrawingNode).GetShapeName();
                 }
 
-                if(cNode.IsConfirmed(ConfirmationType.NodeTypeAndProperties))
+                if (cNode.IsConfirmed(ConfirmationType.NodeTypeAndProperties))
                 {
                     tNode.Header += "Confirmed.";
                 }
@@ -185,7 +187,7 @@ namespace InkAnalyzerTest
         private void AnalysisView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             TreeViewItem selectedItem = e.NewValue as TreeViewItem;
-            if(selectedItem == null)
+            if (selectedItem == null)
                 return;
 
             ContextNode cNode = (ContextNode) selectedItem.Tag;
@@ -195,10 +197,10 @@ namespace InkAnalyzerTest
 
         private void MarkNodeAsRed(ContextNode cNode)
         {
-            foreach(Stroke stroke in MainInkCanvas.Strokes)
+            foreach (Stroke stroke in MainInkCanvas.Strokes)
                 stroke.DrawingAttributes.Color = Colors.Black;
 
-            foreach(Stroke stroke in cNode.Strokes)
+            foreach (Stroke stroke in cNode.Strokes)
                 stroke.DrawingAttributes.Color = Colors.Red;
         }
 
