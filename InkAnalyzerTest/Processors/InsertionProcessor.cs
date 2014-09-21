@@ -99,12 +99,12 @@ namespace InkAnalyzerTest.Processors
             {
                 double distance1 = (Math.Sqrt(InkUtils.distSquared(styluses[0], styluses[4])));
                 double distance2 = (Math.Sqrt(InkUtils.distSquared(styluses[1], styluses[3])));
-                bool closeFirst =  distance1 < 50;
-                bool closeSecond = distance2 < 50;
+                bool closeFirst =  distance1 < 24;
+                bool closeSecond = distance2 < 24;
 
                 double offset = (styluses[0].Y - styluses[1].Y) / (styluses[0].X - styluses[1].X);
                 double levelOffset = (styluses[0].Y - styluses[2].Y);
-                bool isHigh = Math.Abs(offset) > 1.5;
+                bool isHigh = -offset > 1.5;
                 bool level = Math.Abs(levelOffset) < 50;
 
                 Debug.Print(distance1 + " " + distance2 + " " + offset + " " + levelOffset);
