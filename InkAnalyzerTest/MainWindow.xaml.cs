@@ -37,6 +37,13 @@ namespace InkAnalyzerTest
             AutocorrectInit();
         }
 
+        void DisableDictionary()
+        {
+            AnalysisHintNode hint = inkAnalyzer.CreateAnalysisHint();
+            hint.Factoid = "NONE";
+            hint.Location.MakeInfinite();
+        }
+
         private void InkWindow_Loaded(object sender, RoutedEventArgs e)
         {
             //Initialize analyzer and pipeline
@@ -47,13 +54,10 @@ namespace InkAnalyzerTest
             headings = new Headings();
             headings.sidebar = SideInkCanvas;
 
-            //AnalysisHintNode hint = inkAnalyzer.CreateAnalysisHint();
-            //hint.Factoid = "NONE";
-            //hint.Location.MakeInfinite();
-
-            MainInkCanvas.Strokes.StrokesChanged += Strokes_StrokesChanged;
             inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
             pipeline.PipelineComplete += pipeline_PipelineComplete;
+
+            DisableDictionary();
 
             inserter = new InsertionProcessor(MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent, InsertionButton);
             pipeline.AddProcessor(inserter);
