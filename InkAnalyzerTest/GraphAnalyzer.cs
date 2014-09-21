@@ -12,7 +12,7 @@ namespace InkAnalyzerTest
 
     public abstract class Graph
     {
-        protected Stroke box;
+        public Stroke box;
         protected Rect bounds;
         protected InkAnalyzer analyzer;
 
@@ -171,11 +171,11 @@ namespace InkAnalyzerTest
     public class GraphAnalyzer
     {
         InkAnalyzer analyzer;
-        List<Graph> graphs;
+        HashSet<Graph> graphs;
         public GraphAnalyzer()
         {
             analyzer = new InkAnalyzer();
-            graphs = new List<Graph>();
+            graphs = new HashSet<Graph>();
         }
 
         /// <summary>
@@ -208,6 +208,11 @@ namespace InkAnalyzerTest
             }
             analyzer.RemoveStroke(copy);
             return false;
+        }
+
+        public void removeStroke(Stroke stroke)
+        {
+            graphs.RemoveWhere(g => stroke == g.box);
         }
     }
 

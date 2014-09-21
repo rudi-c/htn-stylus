@@ -129,6 +129,7 @@ namespace InkAnalyzerTest
 
             foreach(Stroke stroke in e.Removed)
             {
+                graphAnalyzer.removeStroke(stroke);
                 // If we erase a word and try to replace it with autocorrect
                 // suggestions, there's no good way to define the behavior
                 // so just hide the suggestions.
