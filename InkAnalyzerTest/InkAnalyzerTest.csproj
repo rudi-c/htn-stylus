@@ -98,6 +98,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Headings.cs" />
+    <Compile Include="InsertionBox.xaml.cs">
+      <DependentUpon>InsertionBox.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Processors\AutocorrectProcessor.cs" />
     <Compile Include="Processors\InkProcessor.cs" />
     <Compile Include="InkUtils.cs" />
@@ -108,6 +111,10 @@
     <Compile Include="SuggestionsBox.xaml.cs">
       <DependentUpon>SuggestionsBox.xaml</DependentUpon>
     </Compile>
+    <Page Include="InsertionBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

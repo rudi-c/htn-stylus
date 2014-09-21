@@ -28,6 +28,7 @@ namespace InkAnalyzerTest
         Headings headings;
         GraphAnalyzer graphAnalyzer = new GraphAnalyzer();
         InsertionProcessor inserter;
+        InsertionBox insertionBox;
 
         bool continuousAnalyze = false;
 
@@ -61,7 +62,12 @@ namespace InkAnalyzerTest
 
             //DisableDictionary();
 
-            inserter = new InsertionProcessor(MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent, InsertionButton);
+            insertionBox = new InsertionBox(inserter);
+            insertionBox.TheInsertButton.Click += InsertButton_Click;
+            OverlayCanvas.Children.Add(insertionBox);
+            insertionBox.Visibility = Visibility.Collapsed;
+
+            inserter = new InsertionProcessor(MainInkCanvas, insertionBox);
             pipeline.AddProcessor(inserter);
             pipeline.AddProcessor(new StrikethroughProcessor(MainInkCanvas));
             pipeline.AddProcessor(new ReflowProcessor(MainInkCanvas));
@@ -152,11 +158,10 @@ namespace InkAnalyzerTest
             pipeline.QueueAnalysis();
         }
 
-        private void InsertionButton_Click(object sender, RoutedEventArgs e)
+        private void InsertButton_Click(object sender, RoutedEventArgs e)
         {
-            InkInsertionCanvasParent.Visibility = Visibility.Hidden;
-            InsertionButton.Visibility = Visibility.Hidden;
-            inserter.insertStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas);
+            insertionBox.Visibility = Visibility.Collapsed;
+            inserter.insertStrokes(inkAnalyzer, MainInkCanvas, insertionBox.InkCanvas);
         }
 
         // http://msdn.microsoft.com/en-us/library/system.windows.ink.contextnode(v=vs.90).aspx

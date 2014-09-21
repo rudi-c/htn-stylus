@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,6 +10,8 @@ namespace InkAnalyzerTest.Processors
 {
     public class PipelineAnalyzer
     {
+        public static PipelineAnalyzer analyzer;
+
         public event EventHandler PipelineComplete;
         InkAnalyzer inkAnalyzer = new InkAnalyzer();
 
@@ -20,6 +23,7 @@ namespace InkAnalyzerTest.Processors
 
         public PipelineAnalyzer(InkAnalyzer inkAnalyzer)
         {
+            analyzer = this;
             this.inkAnalyzer = inkAnalyzer;
             inkAnalyzer.ResultsUpdated += InkAnalyzer_ResultsUpdated;
         }
@@ -93,7 +97,10 @@ namespace InkAnalyzerTest.Processors
         {
             inkAnalyzer.DirtyRegion.MakeInfinite();
             running = true;
-            inkAnalyzer.BackgroundAnalyze();
+            if (!inkAnalyzer.BackgroundAnalyze())
+            {
+                InkAnalyzer_ResultsUpdated(null, null);
+            }
         }
 
         Queue<Stroke> adds = new Queue<Stroke>();
