@@ -212,8 +212,7 @@ namespace InkAnalyzerTest
             Stroke copy = stroke.Clone();
             analyzer.AddStroke(copy);
 
-            // TODO: THIS MIGHT NEED FIXING
-            //analyzer.Analyze();
+            analyzer.Analyze();
 
             StrokeCollection sc = new StrokeCollection(new Stroke[] { copy });
             ContextNodeCollection ctxNodes = analyzer.FindInkLeafNodes(sc);
