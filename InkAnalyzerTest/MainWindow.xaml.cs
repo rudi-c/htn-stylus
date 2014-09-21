@@ -66,6 +66,7 @@ namespace InkAnalyzerTest
 
             insertionBox = new InsertionBox(inserter);
             insertionBox.TheInsertButton.Click += InsertButton_Click;
+            insertionBox.TheCancelButton.Click += CancelButton_Click;
             OverlayCanvas.Children.Add(insertionBox);
             insertionBox.Visibility = Visibility.Collapsed;
 
@@ -168,6 +169,11 @@ namespace InkAnalyzerTest
         {
             insertionBox.Visibility = Visibility.Collapsed;
             inserter.insertStrokes(inkAnalyzer, MainInkCanvas, insertionBox.InkCanvas);
+        }
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            insertionBox.Visibility = Visibility.Collapsed;
+            inserter.cancel(MainInkCanvas, insertionBox.InkCanvas);
         }
 
         // http://msdn.microsoft.com/en-us/library/system.windows.ink.contextnode(v=vs.90).aspx
