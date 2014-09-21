@@ -401,9 +401,9 @@ namespace InkAnalyzerTest
             StylusPoint prev = r[0];
             CorrRandExp r1 = new CorrRandExp(0.15, 0.99);
             CorrRandWindow r2 = new CorrRandWindow(0.1, 20);
-            for (int i = 1; i+1 < r.Count; ++i)
+            for (int i = 0; i < r.Count; ++i)
             {
-                StylusPoint cur = r[i], next = r[i + 1];
+                StylusPoint cur = r[i], next = i+1<r.Count?r[i + 1]:cur;
                 double dX = next.X - prev.X, dY = next.Y - prev.Y;
                 double sqrNorm = dX * dX + dY * dY;
                 if (sqrNorm == 0)
