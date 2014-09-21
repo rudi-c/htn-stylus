@@ -158,11 +158,23 @@ namespace InkAnalyzerTest
 
             StrokeCollection stringStrokes = new StrokeCollection();
 
-            foreach (char c in text)
+            for (int i = 0; i < text.Length; i++)
             {
+                char c = text[i];
+
                 if (fontData.Keys.Contains(c))
                 {
                     StylusToken token = fontData[c];
+
+                    double kerningLeft = 2.0;
+                    if (i > 0 && Char.ToLower(text[i - 1]) == text[i - 1] &&
+                        Char.ToLower(c) == c)
+                        kerningLeft += token.width * 0.14;
+
+                    double kerningRight = 2.0;
+                    if (i < text.Length - 1 && Char.ToLower(text[i + 1]) == text[i + 1] &&
+                        Char.ToLower(c) == c)
+                        kerningRight += token.width * 0.14;
 
                     foreach (Stroke stroke in token.strokes)
                     {
@@ -170,12 +182,12 @@ namespace InkAnalyzerTest
                         foreach (StylusPoint point in stroke.StylusPoints)
                         {
                             newPoints.Add(new StylusPoint(
-                                point.X + currentX, point.Y));
+                                point.X + currentX + kerningLeft, point.Y));
                         }
                         stringStrokes.Add(new Stroke(newPoints));
                     }
 
-                    currentX += token.width;
+                    currentX += token.width + kerningLeft + kerningRight;
                 }
             }
 
