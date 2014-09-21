@@ -306,5 +306,10 @@ namespace InkAnalyzerTest
             if (continuousAnalyze)
                 inkAnalyzer.BackgroundAnalyze();
         }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
     }
 }

@@ -15,7 +15,6 @@ namespace InkAnalyzerTest.Processors
     {
         Stroke strokeToBeReplaced;
         InkCanvas mainInkCanvas;
-
         InsertionBox insertionBox;
 
         public InsertionProcessor(InkCanvas mainInkCanvas, InsertionBox insertionBox)
