@@ -78,14 +78,21 @@ namespace InkAnalyzerTest
             foreach (InkWordNode inkWordNode in uncheckedNewWordNodes)
             {
                 string recognizedString = inkWordNode.GetRecognizedString();
-                bool correct = !Regex.IsMatch(recognizedString, @"^[a-zA-Z]+$") || spellchecker.Spell(recognizedString);
+                bool correct = !Regex.IsMatch(recognizedString, @"^[a-zA-Z]+$") || 
+                    spellchecker.Spell(recognizedString);
 
                 if (!correct)
                 {
                     List<string> suggestions = spellchecker.Suggest(inkWordNode.GetRecognizedString());
-                    if (suggestions.Count > 0)
+                    List<string> alphabeticalSuggestions = new List<string>();
+
+                    foreach (string suggestion in suggestions)
+                        if (Regex.IsMatch(suggestion, @"^[a-zA-Z]+$"))
+                            alphabeticalSuggestions.Add(suggestion);
+
+                    if (alphabeticalSuggestions.Count > 0)
                     {
-                        suggestionsBox.SetSuggestions(inkWordNode, suggestions, fontData);
+                        suggestionsBox.SetSuggestions(inkWordNode, alphabeticalSuggestions, fontData);
                         suggestionsBox.Visibility = Visibility.Visible;
                         strokesAddedSinceSuggestionsShown = 0;
 
