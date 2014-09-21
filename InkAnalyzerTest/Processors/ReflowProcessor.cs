@@ -9,10 +9,12 @@ namespace InkAnalyzerTest.Processors
     public class ReflowProcessor : InkProcessor
     {
         private InkCanvas canvas;
+        private bool multiline;
 
-        public ReflowProcessor(InkCanvas canvas)
+        public ReflowProcessor(InkCanvas canvas, bool multiline)
         {
             this.canvas = canvas;
+            this.multiline = multiline;
         }
 
         public void process(InkAnalyzer inkAnalyzer)
@@ -70,7 +72,7 @@ namespace InkAnalyzerTest.Processors
             {
                 //Does word fit?
                 Rect wordBound = word.Strokes.GetBounds();
-                if (x + wordBound.Width + spacing > maxX)
+                if (x + wordBound.Width + spacing > maxX && multiline)
                 {
                     //Not fitting! Newline
                     x = 0;

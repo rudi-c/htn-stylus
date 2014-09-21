@@ -12,5 +12,6 @@ namespace InkAnalyzerTest
         public const double HEADING_LINE_DISTANCE_MAX = 20d;
         public const double MERGE_PARAGRAPH_X = 30d;
         public const double MERGE_PARAGRAPH_Y = 40d;
+        public const double SPACING = 30d;
     }
 }

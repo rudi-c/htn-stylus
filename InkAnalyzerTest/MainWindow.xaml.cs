@@ -29,6 +29,7 @@ namespace InkAnalyzerTest
         public PipelineAnalyzer pipeline;
         Headings headings;
         GraphAnalyzer graphAnalyzer;
+        ReflowProcessor insertReflow;
         InsertionProcessor inserter;
         InsertionBox insertionBox;
 
@@ -70,13 +71,14 @@ namespace InkAnalyzerTest
             insertionBox = new InsertionBox(inserter);
             insertionBox.TheInsertButton.Click += InsertButton_Click;
             insertionBox.TheCancelButton.Click += CancelButton_Click;
+            insertReflow = new ReflowProcessor(insertionBox.InkCanvas, false);
             OverlayCanvas.Children.Add(insertionBox);
             insertionBox.Visibility = Visibility.Collapsed;
 
             inserter = new InsertionProcessor(MainInkCanvas, insertionBox);
             pipeline.AddProcessor(inserter);
             pipeline.AddProcessor(new StrikethroughProcessor(MainInkCanvas));
-            pipeline.AddProcessor(new ReflowProcessor(MainInkCanvas));
+            pipeline.AddProcessor(new ReflowProcessor(MainInkCanvas, true));
             pipeline.AddProcessor(new NavigationProcessor(headings));
             pipeline.AddProcessor(new AutocorrectProcessor(this));
         }
@@ -157,10 +159,10 @@ namespace InkAnalyzerTest
 
                 AutocorrectHandleAddStroke(stroke);
             }
-        
+
             double ymax = InkUtils.StrokeYMax(e.Added);
             if (ymax > MainInkCanvas.ActualHeight - 100.0)
-                MainInkCanvas.Height = ymax + 200.0; 
+                MainInkCanvas.Height = ymax + 200.0;
 
             foreach (Stroke stroke in e.Removed)
             {
@@ -181,8 +183,13 @@ namespace InkAnalyzerTest
 
         private void InsertButton_Click(object sender, RoutedEventArgs e)
         {
+            InkAnalyzer inkAnalyzer = new InkAnalyzer();
+            inkAnalyzer.AddStrokes(insertionBox.InkCanvas.Strokes);
+            inkAnalyzer.Analyze();
+            InkUtils.MergeParagraphs(inkAnalyzer);
+            insertReflow.process(inkAnalyzer);
             insertionBox.Visibility = Visibility.Collapsed;
-            inserter.insertStrokes(inkAnalyzer, MainInkCanvas, insertionBox.InkCanvas);
+            inserter.insertStrokes(this.inkAnalyzer, MainInkCanvas, insertionBox.InkCanvas);
         }
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {

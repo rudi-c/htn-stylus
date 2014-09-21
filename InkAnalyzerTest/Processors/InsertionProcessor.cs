@@ -35,6 +35,7 @@ namespace InkAnalyzerTest.Processors
                         insertionBox.Visibility = Visibility.Visible;
                         Canvas.SetLeft(insertionBox, stroke.StylusPoints[0].X - 140);
                         Canvas.SetTop(insertionBox, stroke.StylusPoints[1].Y);
+                        inkAnalyzer.RemoveStroke(stroke);
                         strokeToBeReplaced = stroke;
                     }
                 }
@@ -60,34 +61,34 @@ namespace InkAnalyzerTest.Processors
                 bestY = strokeToBeReplaced.GetBounds().Y;
             }
             StrokeCollection strokeCollection = insertionCanvas.Strokes.Clone();
-            mainInkCanvas.Strokes.Add(strokeCollection);
+            insertionCanvas.Strokes.Clear();
             double bestX = strokeToBeReplaced.GetBounds().X;
             double strokeX = strokeCollection.GetBounds().X;
             double strokeY = strokeCollection.GetBounds().Y;
             Matrix inkTransform = new Matrix();
             inkTransform.Translate(bestX - strokeX + 20, bestY - strokeY);
             strokeCollection.Transform(inkTransform, false);
+            double width = strokeCollection.GetBounds().Width + Constants.SPACING;
+            double startX = strokeCollection.GetBounds().X;
+            Matrix transform = new Matrix();
+            transform.Translate(width, 0);
             if (selectedNode != null) {
                 for (int i = 0; i < selectedNode.ParentNode.SubNodes.Count; i++)
                 {
                     ContextNode siblingNode = selectedNode.ParentNode.SubNodes[i];
-                    double width = strokeCollection.GetBounds().Width;
-                    double startX = strokeCollection.GetBounds().X;
                     for (int j = 0; j < siblingNode.Strokes.Count; j++)
                     {
                         Stroke stroke = siblingNode.Strokes[j];
                         double offsetX = stroke.GetBounds().X;
-                        
-                        if (offsetX - startX > 0)
+
+                        if (offsetX > startX)
                         {
-                            Matrix transform = new Matrix();
-                            transform.Translate(width, 0);
                             stroke.Transform(transform, false);
                         } 
                     }
                 }
-            }            
-            insertionCanvas.Strokes.Clear();
+            }
+            mainInkCanvas.Strokes.Add(strokeCollection);
             mainInkCanvas.Strokes.Remove(strokeToBeReplaced);
         }
 
