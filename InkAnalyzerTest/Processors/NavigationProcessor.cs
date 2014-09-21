@@ -78,8 +78,10 @@ namespace InkAnalyzerTest.Processors
                 Rect underlineBounds = node.Strokes.GetBounds();
                 if (node is InkWordNode)
                 {
-                    double baseline = (node as InkWordNode).GetBaseline()[0].Y;
-                    underlineBounds.Y = baseline;
+                    if ((node as InkWordNode).GetBaseline() != null && (node as InkWordNode).GetBaseline().Count > 0) {
+                        double baseline = (node as InkWordNode).GetBaseline()[0].Y;
+                        underlineBounds.Y = baseline;
+                    }
                     InkWordNode word = node as InkWordNode;
 
                     foreach (HeadingItem heading in headings)

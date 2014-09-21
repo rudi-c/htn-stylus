@@ -79,11 +79,14 @@ namespace InkAnalyzerTest.Processors
                 }
                 x += spacing + wordBound.Width;
                 PointCollection baseline = word.GetBaseline();
-                double baselineFromTop = baseline[0].Y - wordBound.Y;
-                resultLines[resultLines.Count - 1].Add(word);
-                if (baselineFromTop > lineMaxBaseline[resultLines.Count - 1])
+                if (baseline != null && baseline.Count > 0)
                 {
-                    lineMaxBaseline[resultLines.Count - 1] = baselineFromTop;
+                    double baselineFromTop = baseline[0].Y - wordBound.Y;
+                    resultLines[resultLines.Count - 1].Add(word);
+                    if (baselineFromTop > lineMaxBaseline[resultLines.Count - 1])
+                    {
+                        lineMaxBaseline[resultLines.Count - 1] = baselineFromTop;
+                    }
                 }
             }
 

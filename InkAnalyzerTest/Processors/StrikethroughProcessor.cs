@@ -45,8 +45,12 @@ namespace InkAnalyzerTest.Processors
                 if (node is InkWordNode)
                 {
                     PointCollection bl = (node as InkWordNode).GetBaseline();
-                    double baseline = bl[0].Y;
-                    strikethroughBounds.Height = baseline - strikethroughBounds.Y;
+                    if (bl != null
+                        && bl.Count() > 0)
+                    {
+                        double baseline = bl[0].Y;
+                        strikethroughBounds.Height = baseline - strikethroughBounds.Y;
+                    }
                 }
 
                 for (int j = 0; j < horizontalLines.Count; j++)
