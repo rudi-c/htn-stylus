@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Ink;
+using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace InkAnalyzerTest
@@ -24,6 +25,7 @@ namespace InkAnalyzerTest
             foreach(HeadingItem heading in headings)
             {
                 Rect firstText = heading.text[0].Strokes.GetBounds();
+                heading.finalBounds = firstText;
                 double currentY = y;
                 foreach(ContextNode word in heading.text)
                 {
@@ -35,10 +37,25 @@ namespace InkAnalyzerTest
                     {
                         y = finalBounds.Y + finalBounds.Height;
                     }
+                    heading.finalBounds.Union(finalBounds);
                 }
                 y += 20;
             }
             sidebar.InvalidateVisual();
+        }
+
+        public void click(Point location)
+        {
+            foreach (HeadingItem heading in headings)
+            {
+                if (heading.finalBounds.Contains(location))
+                {
+                    foreach (Stroke line in heading.lines)
+                    {
+                        line.DrawingAttributes.Color = Colors.CornflowerBlue;
+                    }
+                }
+            }
         }
     }
 
@@ -46,6 +63,7 @@ namespace InkAnalyzerTest
     {
         public List<ContextNode> text = new List<ContextNode>();
         public List<Stroke> lines = new List<Stroke>();
+        public Rect finalBounds;
 
         public bool intersects(Rect bounds)
         {

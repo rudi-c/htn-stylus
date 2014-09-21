@@ -98,7 +98,12 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Headings.cs" />
+    <Compile Include="Processors\InkProcessor.cs" />
     <Compile Include="InkUtils.cs" />
+    <Compile Include="Processors\NavigationProcessor.cs" />
+    <Compile Include="Processors\PipelineAnalyzer.cs" />
+    <Compile Include="Processors\ReflowProcessor.cs" />
+    <Compile Include="Processors\StrikethroughProcessor.cs" />
     <Compile Include="SuggestionsBox.xaml.cs">
       <DependentUpon>SuggestionsBox.xaml</DependentUpon>
     </Compile>
