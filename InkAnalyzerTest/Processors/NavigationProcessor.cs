@@ -45,7 +45,8 @@ namespace InkAnalyzerTest.Processors
                     {
                         Rect first = node1.GetBounds();
                         Rect second = node2.GetBounds();
-                        if (Math.Abs(first.Y - second.Y) < 20 && Math.Abs(first.X - second.X) < 20)
+                        if (Math.Abs(first.Y - second.Y) < Constants.HEADING_LINE_DISTANCE_MAX &&
+                            Math.Abs(first.X - second.X) < Constants.HEADING_LINE_DISTANCE_MAX)
                         {
                             intersectsAny = true;
                             break;
