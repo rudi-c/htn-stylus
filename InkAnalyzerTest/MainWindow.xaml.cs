@@ -32,7 +32,7 @@ namespace InkAnalyzerTest
         InsertionProcessor inserter;
         InsertionBox insertionBox;
 
-        bool continuousAnalyze = false;
+        bool continuousAnalyze = true;
 
         public MainWindow()
         {

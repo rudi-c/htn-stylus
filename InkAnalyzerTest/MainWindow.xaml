@@ -44,7 +44,7 @@
             <CheckBox Name="BoundingBoxCheckBox" Content="View Bounding Box" Margin="10" 
                       Unchecked="BoundingBoxCheckBox_Unchecked" Checked="BoundingBoxCheckBox_Checked" />
             <CheckBox Name="ContinuousCheckBox" Content="Continuous Background Analysis" Margin="10" 
-                      Unchecked="ContinuousCheckBox_Unchecked" Checked="ContinuousCheckBox_Checked" />
+                      Unchecked="ContinuousCheckBox_Unchecked" Checked="ContinuousCheckBox_Checked" IsChecked="True" />
         </StackPanel>
         
     </Grid>
