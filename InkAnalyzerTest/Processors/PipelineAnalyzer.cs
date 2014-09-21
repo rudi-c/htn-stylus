@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -91,9 +92,19 @@ namespace InkAnalyzerTest.Processors
 
         private void fireoff()
         {
+            bool stall = false;
             inkAnalyzer.DirtyRegion.MakeInfinite();
             running = true;
             inkAnalyzer.BackgroundAnalyze();
+            if (!inkAnalyzer.IsAnalyzing)
+            {
+                stall = true;
+            }
+            if (stall)
+            {
+                InkAnalyzer_ResultsUpdated(null, null);
+                Debugger.Break();
+            }
         }
 
         Queue<Stroke> adds = new Queue<Stroke>();
