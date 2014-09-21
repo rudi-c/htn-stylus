@@ -36,6 +36,7 @@ namespace InkAnalyzerTest.Processors
                     processor = 0;
                     processing = true;
 
+                    inkAnalyzer.DirtyRegion.MakeInfinite();
                     inkAnalyzer.BackgroundAnalyze();
                 }
             }
