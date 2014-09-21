@@ -25,6 +25,7 @@ namespace InkAnalyzerTest
         CanvasEditor canvasEditor = new CanvasEditor();
         Headings headings = new Headings();
         GraphAnalyzer graphAnalyzer = new GraphAnalyzer();
+        bool sidebarVisible = false;
 
         public MainWindow()
         {
@@ -42,8 +43,13 @@ namespace InkAnalyzerTest
             inkAnalyzer.ResultsUpdated += InkAnalyzer_ResultsUpdated;
             inkAnalyzer.IntermediateResultsUpdated += InkAnalyzer_IntermediateResultsUpdated;
             inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
-            SideBarTrigger.MouseUp += SideBarTrigger_MouseUp;
-            SideBarTrigger.StylusButtonUp += SideBarTrigger_StylusButtonUp;
+            
+            SideInkCanvas.EditingMode = InkCanvasEditingMode.None;
+            MainInkCanvas.MouseMove += MainInkCanvas_MouseMove;
+            SidePanelRect.MouseMove += MainInkCanvas_MouseMove;
+            MainInkCanvas.StylusMove += MainInkCanvas_StylusMove;
+            SidePanelRect.StylusMove += MainInkCanvas_StylusMove;
+            SideInkCanvas.StylusUp += SideInkCanvas_StylusUp;
 
             AnalysisHintNode hint = inkAnalyzer.CreateAnalysisHint();
             hint.Factoid = "NONE";
@@ -75,21 +81,43 @@ namespace InkAnalyzerTest
         {
         }
 
-        private void SideBarTrigger_StylusButtonUp(object sender, StylusButtonEventArgs e)
+        void SideInkCanvas_StylusUp(object sender, StylusEventArgs e)
         {
-            //throw new NotImplementedException();
+            headings.click(e.GetPosition(SideInkCanvas));
         }
 
-        void SideBarTrigger_MouseUp(object sender, MouseButtonEventArgs e)
+        void MainInkCanvas_StylusMove(object sender, StylusEventArgs e)
         {
-            if(SideInkCanvas.Visibility == Visibility.Visible)
+            if (e.GetPosition(MainInkCanvas).X <= 10)
             {
-                SideInkCanvas.Visibility = Visibility.Collapsed;
+                openSidebar();
             }
             else
             {
-                SideInkCanvas.Visibility = Visibility.Visible;
+                hideSidebar();
             }
+        }
+
+        void MainInkCanvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.GetPosition(MainInkCanvas).X <= 15)
+            {
+                openSidebar();
+            }
+            else
+            {
+                hideSidebar();
+            }
+        }
+
+        private void openSidebar()
+        {
+            SidePanel.Visibility = Visibility.Visible;
+        }
+
+        private void hideSidebar()
+        {
+            SidePanel.Visibility = Visibility.Collapsed;
         }
 
         void Strokes_StrokesChanged(object sender, StrokeCollectionChangedEventArgs e)
