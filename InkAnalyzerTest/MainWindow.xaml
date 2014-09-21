@@ -19,9 +19,16 @@
         <ScrollViewer Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2"
                       Name="MainScrollView"
                       HorizontalScrollBarVisibility="Auto">
-            <InkCanvas Name="MainInkCanvas" 
-                       MouseMove = "MainInkCanvas_MouseMove" StylusMove = "MainInkCanvas_StylusMove" 
-                       StylusLeave="MainInkCanvas_StylusLeave" StylusOutOfRange="MainInkCanvas_StylusOutOfRange"  />
+            <Grid>
+                <InkCanvas Name="MainInkCanvas" 
+                           MouseMove = "MainInkCanvas_MouseMove" StylusMove = "MainInkCanvas_StylusMove" 
+                           StylusLeave="MainInkCanvas_StylusLeave" StylusOutOfRange="MainInkCanvas_StylusOutOfRange"  />
+
+                <Canvas Name="OverlayCanvas">
+                </Canvas>
+
+                <InkCanvas Name="OverlayInkCanvas" Background="#00000000"  Visibility="Collapsed" IsHitTestVisible="False" />
+            </Grid>
         </ScrollViewer>
 
         <Rectangle Name="SidePanelRect" Fill="LightGray" Grid.Row="1" Grid.Column="0" Grid.RowSpan="2"
@@ -40,10 +47,5 @@
                       Unchecked="ContinuousCheckBox_Unchecked" Checked="ContinuousCheckBox_Checked" />
         </StackPanel>
         
-        <Canvas Name="OverlayCanvas" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1">
-        </Canvas>
-
-        <InkCanvas Name="OverlayInkCanvas" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" 
-                   Background="#00000000"  Visibility="Collapsed" IsHitTestVisible="False" />
     </Grid>
 </Controls:MetroWindow>
