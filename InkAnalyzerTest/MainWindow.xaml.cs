@@ -1,4 +1,5 @@
-﻿using System;
+﻿using InkAnalyzerTest.Processors;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,8 +22,8 @@ namespace InkAnalyzerTest
     /// </summary>
     public partial class MainWindow : Window
     {
-        InkAnalyzer inkAnalyzer = new InkAnalyzer();
-        CanvasEditor canvasEditor = new CanvasEditor();
+        PipelineAnalyzer pipeline ;
+        InkAnalyzer inkAnalyzer;
         Headings headings = new Headings();
         GraphAnalyzer graphAnalyzer = new GraphAnalyzer();
         bool sidebarVisible = false;
@@ -38,11 +39,12 @@ namespace InkAnalyzerTest
         {
             MainInkCanvas.Strokes.StrokesChanged += Strokes_StrokesChanged;
             inkAnalyzer = new InkAnalyzer(this.Dispatcher);
+            pipeline = new PipelineAnalyzer(inkAnalyzer);
             headings.sidebar = SideInkCanvas;
 
-            inkAnalyzer.ResultsUpdated += InkAnalyzer_ResultsUpdated;
             inkAnalyzer.IntermediateResultsUpdated += InkAnalyzer_IntermediateResultsUpdated;
             inkAnalyzer.ContextNodeCreated += InkAnalyzer_ContextNodeCreated;
+            pipeline.PipelineComplete += pipeline_PipelineComplete;
             
             SideInkCanvas.EditingMode = InkCanvasEditingMode.None;
             MainInkCanvas.MouseMove += MainInkCanvas_MouseMove;
@@ -54,17 +56,14 @@ namespace InkAnalyzerTest
             AnalysisHintNode hint = inkAnalyzer.CreateAnalysisHint();
             hint.Factoid = "NONE";
             hint.Location.MakeInfinite();
+
+            pipeline.AddProcessor(new StrikethroughProcessor(MainInkCanvas));
+            pipeline.AddProcessor(new NavigationProcessor(headings));
+            pipeline.AddProcessor(new ReflowProcessor(MainInkCanvas));
         }
 
-        void InkAnalyzer_ResultsUpdated(object sender, ResultsUpdatedEventArgs e)
+        void pipeline_PipelineComplete(object sender, EventArgs e)
         {
-            //canvasEditor.analyzeStrokeEvent(inkAnalyzer, MainInkCanvas, headings);
-            canvasEditor.analyzeStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent, InsertionButton);
-            //inkAnalyzer.Analyze();
-
-            //AutocorrectNewWordNodes();
-
-            // We're completely rebuilding the tree view.
             AnalysisView.Items.Clear();
 
             TreeViewItem rootTreeItem = new TreeViewItem();
@@ -145,32 +144,14 @@ namespace InkAnalyzerTest
 
         private void AnalyzeButton_Click(object sender, RoutedEventArgs e)
         {
-            inkAnalyzer.BackgroundAnalyze();
-            //inkAnalyzer.Analyze();
-            //canvasEditor.analyzeStrokeEvent(inkAnalyzer, MainInkCanvas, headings);
-            //canvasEditor.analyzeStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas, InkInsertionCanvasParent, InsertionButton);
-            //inkAnalyzer.Analyze();
-
-            //AutocorrectNewWordNodes();
-
-            //// We're completely rebuilding the tree view.
-            //AnalysisView.Items.Clear();
-
-            //TreeViewItem rootTreeItem = new TreeViewItem();
-            //rootTreeItem.Tag = inkAnalyzer.RootNode;
-            //rootTreeItem.Header = inkAnalyzer.RootNode.ToString();
-
-            //AnalysisView.Items.Add(rootTreeItem);
-            //BuildTree(inkAnalyzer.RootNode, rootTreeItem);
-
-            //GenerateBoundingBoxes();
+            pipeline.QueueAnalysis();
         }
 
         private void InsertionButton_Click(object sender, RoutedEventArgs e)
         {
             InkInsertionCanvasParent.Visibility = Visibility.Hidden;
             InsertionButton.Visibility = Visibility.Hidden;
-            canvasEditor.insertStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas);
+            //canvasEditor.insertStrokes(inkAnalyzer, MainInkCanvas, InkInsertionCanvas);
         }
 
         // http://msdn.microsoft.com/en-us/library/system.windows.ink.contextnode(v=vs.90).aspx

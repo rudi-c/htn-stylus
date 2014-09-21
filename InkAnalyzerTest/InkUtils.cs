@@ -241,6 +241,53 @@ namespace InkAnalyzerTest
             }
         }
 
+        public static List<Stroke> findLines(ContextNodeCollection contextNodeCollection)
+        {
+            List<Stroke> horizontalLines = new List<Stroke>();
+
+            //Find single line gestures
+            foreach (ContextNode node in contextNodeCollection)
+            {
+                if (node.Strokes.Count == 1)
+                {
+                    Stroke stroke = node.Strokes[0];
+                    if (strokeIsHorizontalLine(stroke))
+                    {
+                        horizontalLines.Add(stroke);
+                    }
+                }
+            }
+
+            //Find single line in words
+            foreach (ContextNode node in contextNodeCollection)
+            {
+                if (node.Strokes.Count == 0)
+                {
+                    continue;
+                }
+                if (node is InkWordNode)
+                {
+                    InkWordNode word = node as InkWordNode;
+                    Rect bounds = word.Strokes.GetBounds();
+                    foreach (Stroke stroke in word.Strokes)
+                    {
+                        if (stroke.GetBounds().Width / bounds.Width >= 0.9d)
+                        {
+                            horizontalLines.Add(stroke);
+                        }
+                    }
+                }
+            }
+
+            return horizontalLines;
+        }
+
+        private static bool strokeIsHorizontalLine(Stroke stroke)
+        {
+            Rect bounds = stroke.GetBounds();
+            return bounds.Height / bounds.Width < 0.1;
+        }
+
         public static StylusPoint sp(Point p)
         {
             return new StylusPoint(p.X, p.Y);
