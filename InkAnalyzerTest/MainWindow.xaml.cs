@@ -332,5 +332,15 @@ namespace InkAnalyzerTest
             if (continuousAnalyze)
                 inkAnalyzer.BackgroundAnalyze();
         }
+
+        private void DebugToggle_Unchecked(object sender, RoutedEventArgs e)
+        {
+            MainGrid.ColumnDefinitions[3].Width = new GridLength(0);
+        }
+
+        private void DebugToggle_Checked(object sender, RoutedEventArgs e)
+        {
+            MainGrid.ColumnDefinitions[3].Width = new GridLength(20, GridUnitType.Star);
+        }
     }
 }

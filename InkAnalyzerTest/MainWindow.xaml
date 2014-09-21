@@ -13,8 +13,13 @@
             <ColumnDefinition Width="1" />
             <ColumnDefinition Width="20*" />
             <ColumnDefinition Width="60*" />
-            <ColumnDefinition Width="20*" />
+            <ColumnDefinition Width="0" />
         </Grid.ColumnDefinitions>
+
+        <CheckBox Name="DebugToggle" Content="Debug"  IsChecked="False" Grid.Row="0" 
+                  Grid.Column="1" HorizontalAlignment="Left" Margin="10,0,0,0"
+                  Opacity="0.3"
+                  Unchecked="DebugToggle_Unchecked" Checked="DebugToggle_Checked" />
 
         <ScrollViewer Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2"
                       Name="MainScrollView"
