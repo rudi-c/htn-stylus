@@ -10,6 +10,8 @@ namespace InkAnalyzerTest.Processors
 {
     public class PipelineAnalyzer
     {
+        public static PipelineAnalyzer analyzer;
+
         public event EventHandler PipelineComplete;
         InkAnalyzer inkAnalyzer = new InkAnalyzer();
 
@@ -21,6 +23,7 @@ namespace InkAnalyzerTest.Processors
 
         public PipelineAnalyzer(InkAnalyzer inkAnalyzer)
         {
+            analyzer = this;
             this.inkAnalyzer = inkAnalyzer;
             inkAnalyzer.ResultsUpdated += InkAnalyzer_ResultsUpdated;
         }

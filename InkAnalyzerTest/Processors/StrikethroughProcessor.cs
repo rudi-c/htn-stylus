@@ -30,7 +30,7 @@ namespace InkAnalyzerTest.Processors
         private void findAndDeleteStrikethrough(InkAnalyzer inkAnalyzer, InkCanvas canvas,
             List<Stroke> horizontalLines, ContextNodeCollection contextNodeCollection)
         {
-            List<StrokeCollection> deletedStrokes = new List<StrokeCollection>();
+            List<ContextNode> deletedNodes = new List<ContextNode>();
             List<Stroke> removedHorizontalLines = new List<Stroke>();
 
             //Find things to apply gestures to
@@ -45,10 +45,6 @@ namespace InkAnalyzerTest.Processors
                 if (node is InkWordNode)
                 {
                     PointCollection bl = (node as InkWordNode).GetBaseline();
-                    if (bl == null)
-                    {
-                        continue;
-                    }
                     double baseline = bl[0].Y;
                     strikethroughBounds.Height = baseline - strikethroughBounds.Y;
                 }
@@ -64,11 +60,7 @@ namespace InkAnalyzerTest.Processors
                     if (strikethroughBounds.IntersectsWith(horizontalLineBounds))
                     {
                         //Delete strikethrough
-                        deletedStrokes.Add(node.Strokes);
-                        StrokeCollection singleStroke = new StrokeCollection();
-                        singleStroke.Add(horizontalLine);
-                        deletedStrokes.Add(singleStroke);
-
+                        deletedNodes.Add(node);
                         removedHorizontalLines.Add(horizontalLine);
                     }
                 }
@@ -77,15 +69,37 @@ namespace InkAnalyzerTest.Processors
             foreach (Stroke stroke in removedHorizontalLines)
             {
                 horizontalLines.Remove(stroke);
+                canvas.Strokes.Remove(stroke);
+                inkAnalyzer.RemoveStroke(stroke);
             }
 
             //Final step to apply the gestures, commit changes
-            foreach (StrokeCollection stroke in deletedStrokes)
+            foreach (ContextNode node in deletedNodes)
             {
                 try
                 {
-                    canvas.Strokes.Remove(stroke);
-                    inkAnalyzer.RemoveStrokes(stroke);
+                    Rect bounds = node.Strokes.GetBounds();
+                    double nodeX = bounds.X;
+                    ContextNode parent = node.ParentNode;
+                    double closestX = double.MaxValue;
+                    foreach (ContextNode sibling in parent.SubNodes)
+                    {
+                        double siblingX = sibling.Strokes.GetBounds().X;
+                        if (siblingX > nodeX && siblingX < closestX)
+                        {
+                            closestX = siblingX;
+                        }
+                    }
+                    double dx = nodeX - closestX;
+                    foreach(ContextNode sibling in parent.SubNodes) {
+                        //Nodes right side of current
+                        if (sibling.Strokes.GetBounds().X > nodeX)
+                        {
+                            InkUtils.transposeStrokes(inkAnalyzer, sibling.Strokes, dx, 0d);
+                        }
+                    }
+                    canvas.Strokes.Remove(node.Strokes);
+                    inkAnalyzer.RemoveStrokes(node.Strokes);
                 }
                 catch (Exception e)
                 {
