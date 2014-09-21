@@ -1,5 +1,4 @@
-﻿using InkAnalyzerTest.Processors;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -16,12 +15,15 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using InkAnalyzerTest.Processors;
+using MahApps.Metro.Controls;
+
 namespace InkAnalyzerTest
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : MetroWindow
     {
         InkAnalyzer inkAnalyzer;
         public PipelineAnalyzer pipeline;
@@ -309,11 +311,6 @@ namespace InkAnalyzerTest
         {
             if (continuousAnalyze)
                 inkAnalyzer.BackgroundAnalyze();
-        }
-
-        private void Close_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
         }
     }
 }

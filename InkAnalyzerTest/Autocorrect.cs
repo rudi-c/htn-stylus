@@ -26,7 +26,7 @@ namespace InkAnalyzerTest
     // See http://en.wikipedia.org/wiki/Ascender_(typography)
 
     // Class extensions which contains autocorrection logic.
-    public partial class MainWindow : Window
+    public partial class MainWindow 
     {
         Hunspell spellchecker = new Hunspell("en_us.aff", "en_us.dic");
         HashSet<InkWordNode> uncheckedNewWordNodes = new HashSet<InkWordNode>();
