@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Ink;
+using System.Windows.Media;
 
 namespace InkAnalyzerTest.Processors
 {
@@ -43,7 +44,12 @@ namespace InkAnalyzerTest.Processors
                 strikethroughBounds.Height *= 0.75d;
                 if (node is InkWordNode)
                 {
-                    double baseline = (node as InkWordNode).GetBaseline()[0].Y;
+                    PointCollection bl = (node as InkWordNode).GetBaseline();
+                    if (bl == null)
+                    {
+                        continue;
+                    }
+                    double baseline = bl[0].Y;
                     strikethroughBounds.Height = baseline - strikethroughBounds.Y;
                 }
 
