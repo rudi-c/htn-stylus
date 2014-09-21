@@ -40,7 +40,8 @@
         <Rectangle Name="SidePanelRect" Fill="LightGray" Grid.Row="1" Grid.Column="0" Grid.RowSpan="2"
                    MouseMove = "MainInkCanvas_MouseMove" StylusMove = "MainInkCanvas_StylusMove" />
 
-        <Border Name="SidePanel" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Grid.RowSpan="2" BorderBrush="Black" BorderThickness="2" Visibility="Collapsed">
+        <Border Name="SidePanel" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Grid.RowSpan="2" 
+                BorderBrush="DarkGray" BorderThickness="2" CornerRadius="1" Visibility="Collapsed">
             <InkCanvas Name="SideInkCanvas" EditingMode="None" StylusUp="SideInkCanvas_StylusUp" />
         </Border>
         <TreeView Name="AnalysisView" Grid.Column="3" Grid.Row="1" SelectedItemChanged="AnalysisView_SelectedItemChanged" />
