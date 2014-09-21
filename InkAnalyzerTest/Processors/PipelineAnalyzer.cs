@@ -92,18 +92,11 @@ namespace InkAnalyzerTest.Processors
 
         private void fireoff()
         {
-            bool stall = false;
             inkAnalyzer.DirtyRegion.MakeInfinite();
             running = true;
-            inkAnalyzer.BackgroundAnalyze();
-            if (!inkAnalyzer.IsAnalyzing)
-            {
-                stall = true;
-            }
-            if (stall)
+            if (!inkAnalyzer.BackgroundAnalyze())
             {
                 InkAnalyzer_ResultsUpdated(null, null);
-                Debugger.Break();
             }
         }
 

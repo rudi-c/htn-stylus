@@ -317,8 +317,19 @@ namespace InkAnalyzerTest
 
         private static bool strokeIsHorizontalLine(Stroke stroke)
         {
-            Rect bounds = stroke.GetBounds();
-            return bounds.Height / bounds.Width < 0.1;
+            InkAnalyzer temp = new InkAnalyzer();
+            temp.AddStroke(stroke);
+            temp.Analyze();
+            ContextNode node = temp.RootNode.SubNodes[0];
+            if (node is InkDrawingNode)
+            {
+                InkDrawingNode drawing = node as InkDrawingNode;
+                PointCollection boundingBox = drawing.GetRotatedBoundingBox();
+                //TODO: Check for rotated boundingBox instead.
+                Rect bounds = stroke.GetBounds();
+                return bounds.Height / bounds.Width < 0.1;
+            }
+            return false;
         }
 
         public static StylusPoint sp(Point p)
